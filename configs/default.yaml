@@ -1,0 +1,98 @@
+# HQNN Benchmark — Default Configuration
+# Override any key via a custom YAML passed to --config
+
+seed: 42
+models_to_run: [shnn, parallel, tabnet, snn]
+
+data:
+  raw_path: data/raw/creditcard.csv
+  target_column: Class
+  drop_columns: [Time]
+  test_size: 0.20
+  random_state: 42
+
+preprocessing:
+  n_components: 8        # PCA components = qubit count
+  robust_scale: true
+  minmax_range: [0.0, 3.14159265]  # [0, π] for angle encoding
+
+smote:
+  enabled: true
+  k_neighbors: 5
+  random_state: 42
+
+cv:
+  n_folds: 5
+  shuffle: true
+  random_state: 42
+
+noise:
+  enabled: false
+  backend: default.mixed
+  depolarizing_p: 0.0
+
+# ── Quantum hybrid models ────────────────────────────────────────────────────
+
+shnn:
+  pre_fc_dims: [16]
+  post_fc_dims: [8]
+  dropout: 0.1
+  vqc:
+    n_qubits: 8
+    n_layers: 2
+    backend: lightning.qubit
+    diff_method: adjoint
+
+parallel:
+  mlp_dims: [16, 8]
+  post_fc_dims: [8]
+  dropout: 0.1
+  vqc:
+    n_qubits: 8
+    n_layers: 2
+    backend: lightning.qubit
+    diff_method: adjoint
+
+# ── Classical baselines ──────────────────────────────────────────────────────
+
+snn:
+  hidden_dims: [64, 32, 16]
+  alpha_dropout: 0.05
+
+tabnet:
+  n_d: 8
+  n_a: 8
+  n_steps: 3
+  gamma: 1.3
+  lambda_sparse: 0.001
+
+# ── Training ─────────────────────────────────────────────────────────────────
+
+training:
+  epochs: 100
+  batch_size: 256
+  lr: 0.001
+  weight_decay: 0.00001
+  early_stopping_patience: 10
+  optimizer: adam
+  device: auto
+
+training_tabnet:
+  max_epochs: 100
+  patience: 10
+  batch_size: 256
+
+# ── Evaluation ───────────────────────────────────────────────────────────────
+
+evaluation:
+  primary_metrics: [mcc, pr_auc]
+  secondary_metrics: [f1_fraud, roc_auc]
+  significance_test: wilcoxon
+  effect_size: rank_biserial
+
+paths:
+  results_dir: results
+  figures_dir: results/figures
+  metrics_dir: results/metrics
+  models_dir: results/models
+  folds_dir: results/folds

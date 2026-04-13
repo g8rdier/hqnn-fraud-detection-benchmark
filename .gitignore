@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Pixi
+.pixi/
+pixi.lock
+
+# Data
+data/raw/*.csv
+data/processed/
+
+# Results (large binaries)
+results/models/*.pt
+results/folds/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+.venv/
