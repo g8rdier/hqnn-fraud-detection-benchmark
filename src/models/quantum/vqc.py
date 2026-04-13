@@ -57,25 +57,24 @@ def build_vqc_layer(
         # Angle encoding: each feature → Ry rotation on corresponding qubit
         qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation="Y")
 
-        # Parameterized layers
-        for layer_idx in range(n_layers):
-            qml.StronglyEntanglingLayers(
-                weights[layer_idx : layer_idx + 1], wires=range(n_qubits)
-            )
-            # Inject depolarizing noise after each layer if enabled
-            if noise_p > 0:
-                for wire in range(n_qubits):
-                    qml.DepolarizingChannel(noise_p, wires=wire)
+        # Parameterized entangling layers
+        qml.StronglyEntanglingLayers(weights, wires=range(n_qubits))
+
+        # Inject depolarizing noise after circuit if enabled
+        if noise_p > 0:
+            for wire in range(n_qubits):
+                qml.DepolarizingChannel(noise_p, wires=wire)
 
         return qml.expval(qml.PauliZ(0))
 
-    # Weight shape: (n_layers, 1, n_qubits, 3) for StronglyEntanglingLayers
+    # Weight shape: (n_layers, n_qubits, 3) for StronglyEntanglingLayers
     # Total trainable params: n_layers × n_qubits × 3
-    weight_shapes = {"weights": (n_layers, 1, n_qubits, 3)}
+    weight_shapes = {"weights": (n_layers, n_qubits, 3)}
 
-    # Initialize with restricted variance to mitigate barren plateaus
+    # Initialize with restricted variance to mitigate barren plateaus.
+    # PennyLane TorchLayer passes a pre-allocated Tensor to the init callable.
     init_method = {
-        "weights": lambda size: torch.randn(size) * 0.1,
+        "weights": lambda t: torch.nn.init.normal_(t, mean=0.0, std=0.1),
     }
 
     layer = qml.qnn.TorchLayer(circuit, weight_shapes, init_method=init_method)
