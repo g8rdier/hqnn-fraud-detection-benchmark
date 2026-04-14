@@ -159,7 +159,7 @@ class SAINT(nn.Module):
             tokens = block(tokens)
 
         cls_out = self.norm(tokens[:, 0])                       # (B, D)
-        return torch.sigmoid(self.head(cls_out)).squeeze(-1)    # (B,)
+        return torch.sigmoid(self.head(cls_out))                 # (B, 1)
 
     def param_count(self) -> dict[str, int]:
         total = sum(p.numel() for p in self.parameters())
