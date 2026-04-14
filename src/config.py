@@ -98,6 +98,14 @@ class FTTransformerConfig(BaseModel):
     residual_dropout: float = 0.0
 
 
+class ResNetConfig(BaseModel):
+    """ResNet for tabular data (Gorishniy et al., 2021)."""
+    d: int = 32
+    d_hidden: int = 64
+    n_blocks: int = 2
+    dropout: float = 0.0
+
+
 class TrainingConfig(BaseModel):
     epochs: int = 100
     batch_size: int = 256
@@ -147,6 +155,7 @@ class BenchmarkConfig(BaseModel):
     snn: SNNConfig = SNNConfig()
     tabnet: TabNetConfig = TabNetConfig()
     ftt: FTTransformerConfig = FTTransformerConfig()
+    resnet: ResNetConfig = ResNetConfig()
 
     training: TrainingConfig = TrainingConfig()
     training_tabnet: TrainingConfigTabNet = TrainingConfigTabNet()

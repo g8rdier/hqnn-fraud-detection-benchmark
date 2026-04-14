@@ -58,4 +58,8 @@ def build_model(name: str, input_dim: int, cfg: BenchmarkConfig) -> nn.Module | 
         from src.models.classical.ft_transformer import FTTransformer
         return FTTransformer(input_dim=input_dim, cfg=cfg.ftt)
 
-    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt")
+    if name == "resnet":
+        from src.models.classical.resnet_tabular import ResNet
+        return ResNet(input_dim=input_dim, cfg=cfg.resnet)
+
+    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt, resnet")

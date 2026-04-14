@@ -68,6 +68,12 @@ ftt:
   ffn_dropout: 0.0
   residual_dropout: 0.0
 
+resnet:
+  d: 32
+  d_hidden: 64
+  n_blocks: 2
+  dropout: 0.0
+
 tabnet:
   n_d: 8
   n_a: 8
