@@ -91,6 +91,11 @@ def _run_fold_pytorch(
     model = build_model(model_name, input_dim, cfg)
     assert isinstance(model, nn.Module)
 
+    checkpoint_path = (
+        Path(cfg.paths.models_dir)
+        / f"{model_name}_fold{fold.fold_idx}.pt"
+    )
+
     result = train_pytorch_model(
         model=model,
         X_train=fold.X_train,
@@ -99,6 +104,7 @@ def _run_fold_pytorch(
         y_val=fold.y_val,
         X_test=fold.X_test,
         cfg=cfg.training,
+        checkpoint_path=checkpoint_path,
     )
 
     param_count = model.param_count() if hasattr(model, "param_count") else {

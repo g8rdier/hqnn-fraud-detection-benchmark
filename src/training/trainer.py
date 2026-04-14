@@ -8,6 +8,8 @@ Features:
     - Automatic device selection (MPS > CUDA > CPU)
     - Per-epoch logging with Rich progress bars
     - Threshold tuning on validation set
+    - Crash-recovery checkpointing: saves state after every epoch,
+      resumes automatically if a checkpoint file exists
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -71,9 +74,10 @@ def train_pytorch_model(
     y_val: np.ndarray,
     X_test: np.ndarray,
     cfg: TrainingConfig,
+    checkpoint_path: Path | None = None,
 ) -> TrainResult:
     """
-    Train a PyTorch model with early stopping.
+    Train a PyTorch model with early stopping and crash-recovery checkpointing.
 
     Parameters
     ----------
@@ -83,6 +87,9 @@ def train_pytorch_model(
     X_val, y_val : Validation data (real class distribution).
     X_test : Test data for final predictions.
     cfg : TrainingConfig
+    checkpoint_path : Path | None
+        If provided, training state is saved here after every epoch and
+        resumed automatically on restart.
 
     Returns
     -------
@@ -114,18 +121,34 @@ def train_pytorch_model(
 
     criterion = nn.BCELoss()
 
-    # Early stopping state
+    # ── Resume from checkpoint if available ──────────────────────────────────
     best_val_mcc = -1.0
     best_epoch = 0
-    best_state = None
+    best_state: dict | None = None
     patience_counter = 0
-
     train_losses: list[float] = []
     val_mccs: list[float] = []
+    start_epoch = 0
+
+    if checkpoint_path is not None and checkpoint_path.exists():
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        start_epoch = ckpt["epoch"]          # resume from next epoch
+        best_val_mcc = ckpt["best_val_mcc"]
+        best_epoch = ckpt["best_epoch"]
+        patience_counter = ckpt["patience_counter"]
+        train_losses = ckpt["train_losses"]
+        val_mccs = ckpt["val_mccs"]
+        best_state = ckpt["best_state"]
+        model.load_state_dict(ckpt["model_state"])
+        optimizer.load_state_dict(ckpt["optimizer_state"])
+        logger.info(
+            "Resumed from checkpoint (epoch %d, best_mcc=%.4f)",
+            start_epoch, best_val_mcc,
+        )
 
     t0 = time.perf_counter()
 
-    for epoch in range(cfg.epochs):
+    for epoch in range(start_epoch, cfg.epochs):
         # ── Train ─────────────────────────────────────────────────────
         model.train()
         epoch_loss = 0.0
@@ -176,6 +199,24 @@ def train_pytorch_model(
                     epoch + 1, best_epoch, best_val_mcc,
                 )
                 break
+
+        # ── Checkpoint ───────────────────────────────────────────────
+        if checkpoint_path is not None:
+            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(
+                {
+                    "epoch": epoch + 1,
+                    "best_val_mcc": best_val_mcc,
+                    "best_epoch": best_epoch,
+                    "patience_counter": patience_counter,
+                    "train_losses": train_losses,
+                    "val_mccs": val_mccs,
+                    "best_state": best_state,
+                    "model_state": {k: v.cpu().clone() for k, v in model.state_dict().items()},
+                    "optimizer_state": optimizer.state_dict(),
+                },
+                checkpoint_path,
+            )
 
     fit_time = time.perf_counter() - t0
 
