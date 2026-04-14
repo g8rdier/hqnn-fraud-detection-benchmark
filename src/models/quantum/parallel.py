@@ -83,12 +83,14 @@ class ParallelHybrid(nn.Module):
         self.post_fc = nn.Sequential(*post_layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        device = x.device
+
         # Classical branch
         mlp_out = self.mlp_branch(x)           # (batch, mlp_out_dim)
 
-        # Quantum branch
-        vqc_in = self.vqc_proj(x)              # (batch, n_qubits)
-        vqc_out = self.vqc(vqc_in).unsqueeze(-1)  # (batch, 1)
+        # Quantum branch (VQC runs on CPU via PennyLane)
+        vqc_in = self.vqc_proj(x).cpu()        # (batch, n_qubits)
+        vqc_out = self.vqc(vqc_in).unsqueeze(-1).to(device)  # (batch, 1)
 
         # Concatenate and classify
         combined = torch.cat([mlp_out, vqc_out], dim=-1)  # (batch, mlp+1)

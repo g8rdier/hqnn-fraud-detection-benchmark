@@ -17,6 +17,7 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
+import torch
 from pytorch_tabnet.tab_model import TabNetClassifier
 
 from src.config import TabNetConfig, TrainingConfigTabNet
@@ -59,7 +60,7 @@ class TabNetWrapper:
             n_steps=self.cfg.n_steps,
             gamma=self.cfg.gamma,
             lambda_sparse=self.cfg.lambda_sparse,
-            optimizer_fn=None,  # Uses default Adam
+            optimizer_fn=torch.optim.Adam,
             verbose=0,
             seed=42,
         )
@@ -79,21 +80,34 @@ class TabNetWrapper:
             batch_size=self.training_cfg.batch_size,
         )
 
-    def predict(self, X: np.ndarray) -> TabNetResult:
-        """Generate predictions and probabilities."""
+    def predict(
+        self,
+        X: np.ndarray,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
+    ) -> TabNetResult:
+        """Generate predictions with optional threshold tuning on validation set."""
         if self.model is None:
             raise RuntimeError("TabNet not fitted yet. Call fit() first.")
 
-        y_prob = self.model.predict_proba(X)
-        y_pred = self.model.predict(X)
+        y_prob = self.model.predict_proba(X)[:, 1]
 
-        # Count parameters
+        # Threshold tuning on real-distribution validation set
+        threshold = 0.5
+        if X_val is not None and y_val is not None:
+            from src.training.trainer import find_optimal_threshold
+            val_prob = self.model.predict_proba(X_val)[:, 1]
+            threshold = find_optimal_threshold(y_val, val_prob)
+            logger.info("TabNet tuned threshold: %.4f", threshold)
+
+        y_pred = (y_prob >= threshold).astype(int)
+
         total_params = sum(
             p.numel() for p in self.model.network.parameters() if p.requires_grad
         )
 
         return TabNetResult(
             y_pred=y_pred,
-            y_prob=y_prob[:, 1],
+            y_prob=y_prob,
             param_count={"classical": total_params, "quantum": 0, "total": total_params},
         )
