@@ -76,8 +76,11 @@ class SHNN(nn.Module):
         self.post_fc = nn.Sequential(*post_layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        device = x.device
         x = self.pre_fc(x)             # (batch, n_qubits)
+        x = x.cpu()                    # VQC runs on CPU (PennyLane)
         x = self.vqc(x).unsqueeze(-1)  # (batch, 1)
+        x = x.to(device)              # Back to original device
         x = self.post_fc(x)            # (batch, 1)
         return x
 

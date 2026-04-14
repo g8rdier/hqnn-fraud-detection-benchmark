@@ -126,7 +126,7 @@ def _run_fold_tabnet(
 
     wrapper = TabNetWrapper(cfg=cfg.tabnet, training_cfg=cfg.training_tabnet)
     wrapper.fit(fold.X_train, fold.y_train, fold.X_val, fold.y_val)
-    result = wrapper.predict(fold.X_test)
+    result = wrapper.predict(fold.X_test, X_val=fold.X_val, y_val=fold.y_val)
 
     return compute_metrics(
         model_name="tabnet",
