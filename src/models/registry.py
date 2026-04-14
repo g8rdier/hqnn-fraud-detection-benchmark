@@ -58,4 +58,8 @@ def build_model(name: str, input_dim: int, cfg: BenchmarkConfig) -> nn.Module | 
         from src.models.classical.ft_transformer import FTTransformer
         return FTTransformer(input_dim=input_dim, cfg=cfg.ftt)
 
-    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt")
+    if name == "saint":
+        from src.models.classical.saint import SAINT
+        return SAINT(input_dim=input_dim, cfg=cfg.saint)
+
+    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt, saint")

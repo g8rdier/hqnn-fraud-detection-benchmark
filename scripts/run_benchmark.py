@@ -227,7 +227,7 @@ def main() -> None:
     # Pairwise comparisons: every HQNN vs every classical
     stat_results = []
     quantum_models = [r for r in all_aggregated if r.model_name in ("shnn", "parallel")]
-    classical_models = [r for r in all_aggregated if r.model_name in ("tabnet", "snn", "ftt")]
+    classical_models = [r for r in all_aggregated if r.model_name in ("tabnet", "snn", "ftt", "saint")]
 
     for q in quantum_models:
         for c in classical_models:
