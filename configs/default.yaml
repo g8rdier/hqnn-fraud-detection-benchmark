@@ -73,13 +73,13 @@ training:
   batch_size: 256
   lr: 0.001
   weight_decay: 0.00001
-  early_stopping_patience: 10
+  early_stopping_patience: 9999
   optimizer: adam
   device: auto
 
 training_tabnet:
   max_epochs: 100
-  patience: 10
+  patience: 9999
   batch_size: 256
 
 # ── Evaluation ───────────────────────────────────────────────────────────────
