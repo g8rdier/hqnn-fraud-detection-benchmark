@@ -158,6 +158,7 @@ class BenchmarkConfig(BaseModel):
     resnet: ResNetConfig = ResNetConfig()
 
     training: TrainingConfig = TrainingConfig()
+    training_quantum: TrainingConfig = TrainingConfig(lr=0.01)
     training_tabnet: TrainingConfigTabNet = TrainingConfigTabNet()
     evaluation: EvaluationConfig = EvaluationConfig()
     paths: PathsConfig = PathsConfig()

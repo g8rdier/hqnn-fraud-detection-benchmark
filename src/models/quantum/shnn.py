@@ -12,11 +12,19 @@ high-dimensional feature transformer in the quantum-enhanced Hilbert space.
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
 
 from src.config import NoiseConfig, SHNNConfig
 from src.models.quantum.vqc import build_vqc_layer
+
+
+class _PiSigmoid(nn.Module):
+    """Maps any real input to (0, π): x → π · sigmoid(x)."""
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return math.pi * torch.sigmoid(x)
 
 
 class SHNN(nn.Module):
@@ -53,9 +61,11 @@ class SHNN(nn.Module):
                 nn.Dropout(cfg.dropout),
             ])
             in_dim = out_dim
-        # Project to qubit dimension
+        # Project to qubit dimension, then scale to (0, π) for AngleEmbedding.
+        # Tanh → [-1,+1] only covers ±57° of rotation — wrong range.
+        # π*sigmoid maps any real value to (0, π), matching the expected encoding range.
         pre_layers.append(nn.Linear(in_dim, n_qubits))
-        pre_layers.append(nn.Tanh())  # Bound inputs for angle encoding
+        pre_layers.append(_PiSigmoid())
         self.pre_fc = nn.Sequential(*pre_layers)
 
         # ── VQC layer ────────────────────────────────────────────────────
