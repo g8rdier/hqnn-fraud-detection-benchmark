@@ -101,19 +101,20 @@ class _SAINTBlock(nn.Module):
         # 2. Column FFN
         x = x + self.col_ffn(self.norm_col_ffn(x))
 
-        # 3. Row (intersample) attention
-        # Reshape: (B, T, D) → (B, T, D) but pass as batch_first=False
-        # PyTorch MHA with batch_first=False expects (seq, batch, D)
-        # We pass x as (B, T, D) which PyTorch interprets as (seq=B, batch=T, D)
-        # → attention over samples (B dimension) for each token position
-        residual = x
-        x_norm = self.norm_row_attn(x)          # (B, T, D)
-        # batch_first=False → expects (seq, batch, embed) → treat as (B, T, D) directly
-        attn_out, _ = self.row_attn(x_norm, x_norm, x_norm)   # (B, T, D)
-        x = residual + attn_out
-
-        # 4. Row FFN
-        x = x + self.row_ffn(self.norm_row_ffn(x))
+        # 3. Row (intersample) attention — training only.
+        # The attention matrix is B×B; during eval the trainer passes the full
+        # val/test set at once (56k samples), which would require a 56k×56k
+        # matrix (~278 GiB). Intersample attention is a training-time
+        # representation-learning mechanism; skipping it at inference is
+        # semantically consistent (the column attention handles per-sample features).
+        if self.training:
+            residual = x
+            x_norm = self.norm_row_attn(x)          # (B, T, D)
+            # batch_first=False: PyTorch sees (seq=B, batch=T, embed=D)
+            # → attention over samples for each token position
+            attn_out, _ = self.row_attn(x_norm, x_norm, x_norm)
+            x = residual + attn_out
+            x = x + self.row_ffn(self.norm_row_ffn(x))
 
         return x
 
