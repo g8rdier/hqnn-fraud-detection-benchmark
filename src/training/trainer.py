@@ -157,11 +157,10 @@ def train_pytorch_model(
         val_mcc = matthews_corrcoef(y_val_np, val_pred)
         val_mccs.append(val_mcc)
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            logger.info(
-                "Epoch %3d/%d | loss=%.4f | val_mcc=%.4f",
-                epoch + 1, cfg.epochs, avg_loss, val_mcc,
-            )
+        logger.info(
+            "Epoch %3d/%d | loss=%.4f | val_mcc=%.4f",
+            epoch + 1, cfg.epochs, avg_loss, val_mcc,
+        )
 
         # ── Early stopping ────────────────────────────────────────────
         if val_mcc > best_val_mcc:
