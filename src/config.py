@@ -111,7 +111,7 @@ class TrainingConfig(BaseModel):
     batch_size: int = 256
     lr: float = 1e-3
     weight_decay: float = 1e-5
-    early_stopping_patience: int = 10
+    early_stopping_patience: int = 9999
     optimizer: Literal["adam", "sgd"] = "adam"
     device: str = "auto"  # "auto" → MPS if available, else CPU
 
@@ -119,7 +119,7 @@ class TrainingConfig(BaseModel):
 class TrainingConfigTabNet(BaseModel):
     """TabNet uses its own internal training loop."""
     max_epochs: int = 100
-    patience: int = 10
+    patience: int = 9999
     batch_size: int = 256
 
 
