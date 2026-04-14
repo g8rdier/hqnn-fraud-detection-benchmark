@@ -87,6 +87,17 @@ class TabNetConfig(BaseModel):
     lambda_sparse: float = 1e-3
 
 
+class FTTransformerConfig(BaseModel):
+    """Feature Tokenizer + Transformer (Gorishniy et al., 2021)."""
+    d_token: int = 32
+    n_blocks: int = 2
+    n_heads: int = 4
+    ffn_d_hidden_factor: float = 1.333
+    attn_dropout: float = 0.0
+    ffn_dropout: float = 0.0
+    residual_dropout: float = 0.0
+
+
 class TrainingConfig(BaseModel):
     epochs: int = 100
     batch_size: int = 256
@@ -135,6 +146,7 @@ class BenchmarkConfig(BaseModel):
     parallel: ParallelHybridConfig = ParallelHybridConfig()
     snn: SNNConfig = SNNConfig()
     tabnet: TabNetConfig = TabNetConfig()
+    ftt: FTTransformerConfig = FTTransformerConfig()
 
     training: TrainingConfig = TrainingConfig()
     training_tabnet: TrainingConfigTabNet = TrainingConfigTabNet()

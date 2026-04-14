@@ -59,6 +59,15 @@ snn:
   hidden_dims: [64, 32, 16]
   alpha_dropout: 0.05
 
+ftt:
+  d_token: 32
+  n_blocks: 2
+  n_heads: 4
+  ffn_d_hidden_factor: 1.333
+  attn_dropout: 0.0
+  ffn_dropout: 0.0
+  residual_dropout: 0.0
+
 tabnet:
   n_d: 8
   n_a: 8
