@@ -103,7 +103,7 @@ def _run_fold_pytorch(
         X_val=fold.X_val,
         y_val=fold.y_val,
         X_test=fold.X_test,
-        cfg=cfg.training,
+        cfg=cfg.training_quantum if model_name in ("shnn", "parallel") else cfg.training,
         checkpoint_path=checkpoint_path,
     )
 

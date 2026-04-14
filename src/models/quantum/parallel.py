@@ -14,11 +14,19 @@ classical representation learning and quantum-enhanced feature mapping.
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
 
 from src.config import NoiseConfig, ParallelHybridConfig
 from src.models.quantum.vqc import build_vqc_layer
+
+
+class _PiSigmoid(nn.Module):
+    """Maps any real input to (0, π): x → π · sigmoid(x)."""
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return math.pi * torch.sigmoid(x)
 
 
 class ParallelHybrid(nn.Module):
@@ -59,10 +67,11 @@ class ParallelHybrid(nn.Module):
         mlp_out_dim = cfg.mlp_dims[-1] if cfg.mlp_dims else input_dim
 
         # ── Quantum VQC branch ───────────────────────────────────────────
-        # Project input to qubit dimension, then pass through VQC
+        # Project input to qubit dimension, then scale to (0, π) for AngleEmbedding.
+        # π*sigmoid maps any real value to (0, π) — the correct encoding range.
         self.vqc_proj = nn.Sequential(
             nn.Linear(input_dim, n_qubits),
-            nn.Tanh(),  # Bound for angle encoding
+            _PiSigmoid(),
         )
         self.vqc = build_vqc_layer(cfg.vqc, noise_cfg)
         vqc_out_dim = 1  # Single expectation value
