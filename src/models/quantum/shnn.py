@@ -82,7 +82,7 @@ class SHNN(nn.Module):
             ])
             in_dim = out_dim
         post_layers.append(nn.Linear(in_dim, 1))
-        post_layers.append(nn.Sigmoid())
+        post_layers.append(nn.Tanh())
         self.post_fc = nn.Sequential(*post_layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

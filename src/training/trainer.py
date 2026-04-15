@@ -53,12 +53,15 @@ class TrainResult:
     val_mccs: list[float] = field(default_factory=list)
 
 
-def find_optimal_threshold(y_true: np.ndarray, y_prob: np.ndarray) -> float:
-    """Find the threshold that maximizes MCC on validation data."""
+def find_optimal_threshold(y_true: np.ndarray, y_logits: np.ndarray) -> float:
+    """Find the threshold that maximizes MCC on validation data.
+
+    For tanh outputs in [-1, 1], search thresholds in that range.
+    """
     best_mcc = -1.0
-    best_t = 0.5
-    for t in np.arange(0.05, 0.95, 0.01):
-        preds = (y_prob >= t).astype(int)
+    best_t = 0.0
+    for t in np.arange(-0.95, 1.0, 0.05):
+        preds = (y_logits >= t).astype(int)
         mcc = matthews_corrcoef(y_true, preds)
         if mcc > best_mcc:
             best_mcc = mcc
@@ -99,15 +102,18 @@ def train_pytorch_model(
     logger.info("Training on device: %s", device)
     model = model.to(device)
 
-    # Build data loaders
+    # Build data loaders (convert labels from [0,1] to [-1,+1] for MSE loss)
+    y_train_mse = 2 * y_train - 1  # [0,1] → [-1,+1]
+    y_val_mse = 2 * y_val - 1
     train_ds = TensorDataset(
         torch.tensor(X_train, dtype=torch.float32),
-        torch.tensor(y_train, dtype=torch.float32).unsqueeze(-1),
+        torch.tensor(y_train_mse, dtype=torch.float32).unsqueeze(-1),
     )
     train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True)
 
     X_val_t = torch.tensor(X_val, dtype=torch.float32).to(device)
     y_val_np = y_val
+    y_val_mse_t = torch.tensor(y_val_mse, dtype=torch.float32).to(device).unsqueeze(-1)
 
     # Optimizer
     if cfg.optimizer == "adam":
@@ -119,7 +125,7 @@ def train_pytorch_model(
             model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay, momentum=0.9
         )
 
-    criterion = nn.BCELoss()
+    criterion = nn.MSELoss()
 
     # ── Resume from checkpoint if available ──────────────────────────────────
     best_val_mcc = -1.0
@@ -167,16 +173,12 @@ def train_pytorch_model(
         train_losses.append(avg_loss)
 
         # ── Validate ──────────────────────────────────────────────────
-        # Use fixed 0.5 threshold for early stopping signal. Although the
-        # val set has real class distribution (0.17% fraud), the slowly-
-        # climbing MCC at 0.5 provides a stable monotonic proxy for
-        # representation quality. Threshold tuning happens *after* training
-        # for final test predictions — tuning it per-epoch causes premature
-        # early stopping because val_mcc peaks too early.
+        # Tanh outputs are in [-1, 1]. Use threshold 0 for early stopping signal,
+        # then tune on validation set after training for final predictions.
         model.eval()
         with torch.no_grad():
-            val_prob = model(X_val_t).cpu().numpy().flatten()
-        val_pred = (val_prob >= 0.5).astype(int)
+            val_logits = model(X_val_t).cpu().numpy().flatten()
+        val_pred = (val_logits >= 0.0).astype(int)
         val_mcc = matthews_corrcoef(y_val_np, val_pred)
         val_mccs.append(val_mcc)
 
@@ -228,19 +230,19 @@ def train_pytorch_model(
     # ── Threshold tuning on validation set ────────────────────────────
     model.eval()
     with torch.no_grad():
-        val_prob = model(X_val_t).cpu().numpy().flatten()
-    threshold = find_optimal_threshold(y_val_np, val_prob)
+        val_logits = model(X_val_t).cpu().numpy().flatten()
+    threshold = find_optimal_threshold(y_val_np, val_logits)
     logger.info("Tuned threshold: %.4f (best_epoch=%d)", threshold, best_epoch)
 
     # ── Test predictions ──────────────────────────────────────────────
     X_test_t = torch.tensor(X_test, dtype=torch.float32).to(device)
     with torch.no_grad():
-        test_prob = model(X_test_t).cpu().numpy().flatten()
-    test_pred = (test_prob >= threshold).astype(int)
+        test_logits = model(X_test_t).cpu().numpy().flatten()
+    test_pred = (test_logits >= threshold).astype(int)
 
     return TrainResult(
         y_pred=test_pred,
-        y_prob=test_prob,
+        y_prob=test_logits,
         threshold=threshold,
         fit_time=fit_time,
         best_epoch=best_epoch,
