@@ -34,12 +34,12 @@ noise:
 # ── Quantum hybrid models ────────────────────────────────────────────────────
 
 shnn:
-  pre_fc_dims: [16]
-  post_fc_dims: [8]
+  pre_fc_dims: []        # No pre-quantum FC: input → VQC directly (Linear 8→8 + PiSigmoid only)
+  post_fc_dims: []       # No post-quantum FC: VQC → output directly (Linear 1→1 + Sigmoid only)
   dropout: 0.1
   vqc:
-    n_qubits: 8
-    n_layers: 2
+    n_qubits: 8          # Exposé spec: 8 qubits
+    n_layers: 2          # Exposé spec: 2 layers → 48 quantum params → total ~122 params
     backend: lightning.qubit
     diff_method: adjoint
 
