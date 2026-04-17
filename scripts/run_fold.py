@@ -91,6 +91,7 @@ def main() -> None:
         model = build_model(model_name, input_dim, cfg)
         assert isinstance(model, nn.Module)
 
+        train_cfg = cfg.training_quantum if model_name in ("shnn", "parallel") else cfg.training
         train_result = train_pytorch_model(
             model=model,
             X_train=fold.X_train,
@@ -98,7 +99,7 @@ def main() -> None:
             X_val=fold.X_val,
             y_val=fold.y_val,
             X_test=fold.X_test,
-            cfg=cfg.training,
+            cfg=train_cfg,
         )
 
         param_count = model.param_count() if hasattr(model, "param_count") else {
