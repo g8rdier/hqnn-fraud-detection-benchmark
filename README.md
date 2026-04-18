@@ -210,4 +210,4 @@ The VQC provides 100% of the model's predictive signal. Without it, SHNN collaps
 
 ## License
 
-MIT
+[MIT](LICENSE)
