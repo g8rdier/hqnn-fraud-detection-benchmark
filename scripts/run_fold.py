@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Run a single benchmark fold")
-    p.add_argument("--config", type=Path, default=None)
+    p.add_argument("--config", type=Path, default=Path("configs/default.yaml"))
     p.add_argument("--model", type=str, required=True)
     p.add_argument("--fold", type=int, required=True)
     p.add_argument("--log-level", default="INFO")
