@@ -14,29 +14,17 @@
 
 ## Research Question
 
-> "To what extent do Hybrid Quantum Neural Networks achieve superior parameter efficiency compared to classical deep learning models for tabular binary classification under extreme class imbalance?"
+> "To what extent do Hybrid Quantum Neural Networks (HQNNs) demonstrate Parameter Efficiency Advantage — defined as achieving comparable or superior MCC and PR-AUC scores with significantly fewer trainable parameters — over state-of-the-art classical models for imbalanced financial data?"
 
 ---
 
-## Hypotheses
+## Evaluation Design
 
-### H1: Classification Performance
+The benchmark measures two dimensions:
 
-**H0₁:** HQNN architectures (SHNN, Parallel Hybrid) achieve no statistically significant difference in MCC compared to classical deep learning baselines (SNN, TabNet, FT-Transformer, ResNet, SAINT).
+**1. Absolute performance** — MCC and PR-AUC across 5 stratified CV folds, reported as mean ± std. Statistical consistency is assessed via the Wilcoxon signed-rank test. Given n=5 folds, the minimum achievable p-value (0.0625) exceeds the standard significance threshold; rank-biserial correlation therefore serves as the primary effect size measure.
 
-**H1₁:** HQNN architectures achieve a significantly different MCC compared to classical deep learning baselines.
-
-*Rationale:* MCC is the primary metric — it is the most informative single scalar for binary classification under extreme class imbalance (0.17% fraud). Quantum circuits project input features into an exponentially large Hilbert space, which may yield superior model capacity relative to parameter count even on NISQ simulators.
-
-### H2: Parameter Efficiency
-
-**H0₂:** HQNN architectures achieve no statistically significant advantage in MCC per trainable parameter compared to size-matched classical baselines.
-
-**H1₂:** HQNN architectures achieve a significantly higher MCC per trainable parameter than classical deep learning models of comparable size.
-
-*Rationale:* Hybrid quantum models are intentionally small (~100–150 total parameters). The central thesis claim is not raw performance, but parameter efficiency — whether quantum circuits provide disproportionate representational power relative to their parameter count.
-
-*Statistical validation:* Wilcoxon signed-rank test across 5 CV folds; effect size via rank-biserial correlation.
+**2. Parameter efficiency** — MCC per trainable parameter for each architecture. This operationalises the theoretical quantum expressivity advantage: a small quantum model should achieve disproportionately high MCC relative to its parameter count compared to larger classical baselines.
 
 ---
 
