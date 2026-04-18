@@ -47,7 +47,7 @@ def _parse_args() -> argparse.Namespace:
         description="HQNN vs Classical Deep Learning Benchmark",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--config", type=Path, default=None, help="YAML config file.")
+    p.add_argument("--config", type=Path, default=Path("configs/default.yaml"), help="YAML config file.")
     p.add_argument("--models", nargs="+", default=None, help="Subset of models to run.")
     p.add_argument("--no-plots", action="store_true", help="Skip figure generation.")
     p.add_argument("--parallel", action="store_true", help="Launch folds as subprocesses.")
