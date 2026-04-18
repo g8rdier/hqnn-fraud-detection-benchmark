@@ -163,8 +163,6 @@ Input (8) ──┬─→ MLP [16, 8] ──────────────
 |---|---|
 | **MCC** | Primary — balanced, threshold-aware, robust to imbalance |
 | **PR-AUC** | Primary — threshold-free, captures precision/recall trade-off |
-| F1-Fraud | Secondary reference |
-| ROC-AUC | Secondary reference |
 
 Early stopping: patience 20 (quantum) / 15 (classical), monitored on validation MCC.
 Final threshold: tuned on validation set post-training using `find_optimal_threshold`.
