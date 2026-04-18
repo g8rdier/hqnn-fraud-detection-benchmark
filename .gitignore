@@ -32,3 +32,6 @@ Thumbs.db
 # Environment
 .env
 .venv/
+
+# Claude Code project instructions (local tooling config)
+CLAUDE.md
