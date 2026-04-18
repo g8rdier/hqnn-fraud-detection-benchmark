@@ -167,16 +167,15 @@ def train_pytorch_model(
         train_losses.append(avg_loss)
 
         # ── Validate ──────────────────────────────────────────────────
-        # Use fixed 0.5 threshold for early stopping signal. Although the
-        # val set has real class distribution (0.17% fraud), the slowly-
-        # climbing MCC at 0.5 provides a stable monotonic proxy for
-        # representation quality. Threshold tuning happens *after* training
-        # for final test predictions — tuning it per-epoch causes premature
-        # early stopping because val_mcc peaks too early.
+        # Use optimal threshold for early stopping signal — same signal
+        # used for final test evaluation. Fold 0 showed fixed 0.5 was
+        # blind to the model's actual learning (val_mcc=0.16 at 0.5 vs
+        # test MCC=0.48 at tuned threshold 0.94).
         model.eval()
         with torch.no_grad():
             val_prob = model(X_val_t).cpu().numpy().flatten()
-        val_pred = (val_prob >= 0.5).astype(int)
+        val_threshold = find_optimal_threshold(y_val_np, val_prob)
+        val_pred = (val_prob >= val_threshold).astype(int)
         val_mcc = matthews_corrcoef(y_val_np, val_pred)
         val_mccs.append(val_mcc)
 
