@@ -92,6 +92,9 @@ def main() -> None:
         assert isinstance(model, nn.Module)
 
         train_cfg = cfg.training_quantum if model_name in ("shnn", "parallel") else cfg.training
+        checkpoint_path = (
+            Path(cfg.paths.models_dir) / f"{model_name}_fold{args.fold}.pt"
+        )
         train_result = train_pytorch_model(
             model=model,
             X_train=fold.X_train,
@@ -100,6 +103,7 @@ def main() -> None:
             y_val=fold.y_val,
             X_test=fold.X_test,
             cfg=train_cfg,
+            checkpoint_path=checkpoint_path,
         )
 
         param_count = model.param_count() if hasattr(model, "param_count") else {
