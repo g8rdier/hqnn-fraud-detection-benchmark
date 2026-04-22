@@ -1,0 +1,62 @@
+[
+  {
+    "depolarizing_p": 0.0,
+    "noise_factor": 1.0,
+    "mcc_tuned_threshold": 0.6381800448452275,
+    "tuned_threshold": 0.9400000000000002,
+    "mcc_fixed_threshold": 0.6381800448452275,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  },
+  {
+    "depolarizing_p": 0.001,
+    "noise_factor": 0.94803,
+    "mcc_tuned_threshold": 0.6559070058711547,
+    "tuned_threshold": 0.9400000000000002,
+    "mcc_fixed_threshold": 0.6559070058711547,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  },
+  {
+    "depolarizing_p": 0.005,
+    "noise_factor": 0.765245,
+    "mcc_tuned_threshold": 0.7089774895725436,
+    "tuned_threshold": 0.9200000000000002,
+    "mcc_fixed_threshold": 0.6996130473745128,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  },
+  {
+    "depolarizing_p": 0.01,
+    "noise_factor": 0.584545,
+    "mcc_tuned_threshold": 0.7122031605357988,
+    "tuned_threshold": 0.8300000000000002,
+    "mcc_fixed_threshold": 0.5075266058954376,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  },
+  {
+    "depolarizing_p": 0.02,
+    "noise_factor": 0.339206,
+    "mcc_tuned_threshold": 0.7122031605357988,
+    "tuned_threshold": 0.5900000000000001,
+    "mcc_fixed_threshold": 0.0,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  },
+  {
+    "depolarizing_p": 0.05,
+    "noise_factor": 0.06331,
+    "mcc_tuned_threshold": 0.705900502229291,
+    "tuned_threshold": 0.27,
+    "mcc_fixed_threshold": 0.0,
+    "fixed_threshold": 0.9400000000000002,
+    "n_samples": 56962,
+    "n_fraud": 98
+  }
+]
