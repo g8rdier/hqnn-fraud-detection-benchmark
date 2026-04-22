@@ -46,7 +46,7 @@ NOISE_LEVELS: list[float] = [0.0, 0.001, 0.005, 0.01, 0.02, 0.05]
 CHECKPOINT_PATH = Path("results/models/shnn_fold0.pt")
 OUT_PATH = Path("results/ablation_noise.json")
 # Stratified subsample size for p > 0 (density matrix sim is ~10–20× slower)
-N_SUBSAMPLE = 5_000
+N_SUBSAMPLE = 1_000
 RANDOM_SEED = 42
 
 
@@ -153,12 +153,13 @@ def main() -> None:
             }
         )
 
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUT_PATH, "w") as f:
-        json.dump(results, f, indent=2)
-    logger.info("Saved → %s", OUT_PATH)
+        # Save incrementally so a crash doesn't lose completed levels
+        OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(OUT_PATH, "w") as f:
+            json.dump(results, f, indent=2)
+        logger.info("Saved → %s", OUT_PATH)
 
-    logger.info("\n── Summary ──")
+    logger.info("── Summary ──")
     for r in results:
         logger.info("p=%.3f → MCC=%.4f", r["depolarizing_p"], r["mcc"])
 
