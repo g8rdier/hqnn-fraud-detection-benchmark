@@ -2,21 +2,26 @@
 """
 ablation_noise.py
 =================
-Ablation: MCC degradation of the trained SHNN under depolarizing noise.
+Ablation: MCC degradation of the trained SHNN under per-gate depolarising noise.
 
 Loads the best fold 0 SHNN weights and evaluates MCC at increasing
-depolarizing noise levels using an analytically exact noise model.
+depolarising noise levels using an analytically derived per-gate noise model.
 
 Noise model
 -----------
-For a DepolarizingChannel(p) on the measured qubit (qubit 0):
+Real NISQ hardware accumulates errors at every gate.  For independent
+per-gate depolarising noise with probability p, the expectation value
+of the measured observable degrades as:
 
-    <Z0>_noisy = (1 - 4p/3) × <Z0>_ideal
+    <Z0>_noisy = (1 - 4p/3)^N_gates × <Z0>_ideal
 
-Depolarising channels on qubits 1–7 do not affect <Z0> by the
-trace-preserving property of local quantum channels.  This avoids
-density-matrix simulation entirely: VQC outputs are computed once
-with the ideal lightning.qubit backend, then scaled per noise level.
+Circuit gate count (n_qubits=8, n_layers=2):
+    AngleEmbedding : 8  Ry gates
+    StronglyEntanglingLayers : 16 Rot + 16 CNOT = 32 gates
+    Total N_gates  : 40
+
+VQC outputs are computed once with the ideal lightning.qubit backend,
+then scaled analytically per noise level — no density-matrix simulation.
 
 Usage
 -----
@@ -48,6 +53,9 @@ from src.models.quantum.shnn import SHNN
 from src.training.trainer import find_optimal_threshold
 
 NOISE_LEVELS: list[float] = [0.0, 0.001, 0.005, 0.01, 0.02, 0.05]
+# Gate count for 8-qubit, 2-layer VQC:
+#   8 Ry (AngleEmbedding) + 16 Rot + 16 CNOT (StronglyEntanglingLayers) = 40
+N_GATES = 40
 CHECKPOINT_PATH = Path("results/models/shnn_fold0.pt")
 OUT_PATH = Path("results/ablation_noise.json")
 
@@ -102,29 +110,41 @@ def main() -> None:
 
     logger.info("VQC output range: [%.4f, %.4f]", vqc_out.min().item(), vqc_out.max().item())
 
+    # Baseline threshold from ideal model — fixed for the realistic deployment scenario
+    with torch.no_grad():
+        prob_ideal = model.post_fc(vqc_out.unsqueeze(-1)).numpy().flatten()
+    fixed_threshold = find_optimal_threshold(fold.y_test, prob_ideal)
+    logger.info("Baseline threshold (fixed for deployment scenario): %.2f", fixed_threshold)
+
     results = []
 
     for p in NOISE_LEVELS:
-        # Analytical depolarising: <Z0>_noisy = (1 - 4p/3) × <Z0>_ideal
-        noise_factor = 1.0 - (4.0 * p / 3.0)
+        # Per-gate depolarising: <Z0>_noisy = (1 - 4p/3)^N_gates × <Z0>_ideal
+        noise_factor = (1.0 - 4.0 * p / 3.0) ** N_GATES
         vqc_noisy = vqc_out * noise_factor  # (n,)
 
         with torch.no_grad():
             prob = model.post_fc(vqc_noisy.unsqueeze(-1)).numpy().flatten()
 
-        threshold = find_optimal_threshold(fold.y_test, prob)
-        mcc = matthews_corrcoef(fold.y_test, (prob >= threshold).astype(int))
+        # Tuned: re-optimise threshold at each noise level (best possible performance)
+        tuned_threshold = find_optimal_threshold(fold.y_test, prob)
+        mcc_tuned = matthews_corrcoef(fold.y_test, (prob >= tuned_threshold).astype(int))
+
+        # Fixed: keep baseline threshold (realistic NISQ deployment — calibrate once, deploy)
+        mcc_fixed = matthews_corrcoef(fold.y_test, (prob >= fixed_threshold).astype(int))
 
         logger.info(
-            "p=%.3f (scale=%.4f) → MCC=%.4f (threshold=%.2f)",
-            p, noise_factor, mcc, threshold,
+            "p=%.3f (scale=%.4f) → MCC tuned=%.4f (t=%.2f) | fixed=%.4f (t=%.2f)",
+            p, noise_factor, mcc_tuned, tuned_threshold, mcc_fixed, fixed_threshold,
         )
 
         results.append({
             "depolarizing_p": p,
             "noise_factor": round(noise_factor, 6),
-            "mcc": float(mcc),
-            "threshold": float(threshold),
+            "mcc_tuned_threshold": float(mcc_tuned),
+            "tuned_threshold": float(tuned_threshold),
+            "mcc_fixed_threshold": float(mcc_fixed),
+            "fixed_threshold": float(fixed_threshold),
             "n_samples": int(len(fold.y_test)),
             "n_fraud": n_fraud,
         })
@@ -137,7 +157,10 @@ def main() -> None:
     logger.info("Saved → %s", OUT_PATH)
     logger.info("── Summary ──")
     for r in results:
-        logger.info("p=%.3f → MCC=%.4f", r["depolarizing_p"], r["mcc"])
+        logger.info(
+            "p=%.3f → MCC tuned=%.4f | fixed=%.4f",
+            r["depolarizing_p"], r["mcc_tuned_threshold"], r["mcc_fixed_threshold"],
+        )
 
 
 if __name__ == "__main__":
