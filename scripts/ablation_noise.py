@@ -4,14 +4,19 @@ ablation_noise.py
 =================
 Ablation: MCC degradation of the trained SHNN under depolarizing noise.
 
-Loads the best fold 0 SHNN weights and evaluates on the test set at
-increasing depolarizing noise levels to characterise NISQ-era robustness.
-Noise is injected via DepolarizingChannel after the VQC (inference only —
-no retraining). Uses default.mixed backend for p > 0.
+Loads the best fold 0 SHNN weights and evaluates MCC at increasing
+depolarizing noise levels using an analytically exact noise model.
 
-Note: results/models/shnn_fold0.pt must contain the best trained weights.
-      If in doubt, regenerate via:
-          pixi run python scripts/run_benchmark.py --model shnn --fold 0
+Noise model
+-----------
+For a DepolarizingChannel(p) on the measured qubit (qubit 0):
+
+    <Z0>_noisy = (1 - 4p/3) × <Z0>_ideal
+
+Depolarising channels on qubits 1–7 do not affect <Z0> by the
+trace-preserving property of local quantum channels.  This avoids
+density-matrix simulation entirely: VQC outputs are computed once
+with the ideal lightning.qubit backend, then scaled per noise level.
 
 Usage
 -----
@@ -36,7 +41,7 @@ from sklearn.metrics import matthews_corrcoef
 logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
 
-from src.config import NoiseConfig, load_config
+from src.config import load_config
 from src.data.cv import create_folds
 from src.data.loader import load_dataset
 from src.models.quantum.shnn import SHNN
@@ -45,9 +50,6 @@ from src.training.trainer import find_optimal_threshold
 NOISE_LEVELS: list[float] = [0.0, 0.001, 0.005, 0.01, 0.02, 0.05]
 CHECKPOINT_PATH = Path("results/models/shnn_fold0.pt")
 OUT_PATH = Path("results/ablation_noise.json")
-# Stratified subsample size for p > 0 (density matrix sim is ~10–20× slower)
-N_SUBSAMPLE = 1_000
-RANDOM_SEED = 42
 
 
 def load_best_weights(checkpoint_path: Path) -> dict:
@@ -60,38 +62,8 @@ def load_best_weights(checkpoint_path: Path) -> dict:
             ckpt.get("best_val_mcc", float("nan")),
         )
         return ckpt["best_state"]
-    # Fallback: plain state dict saved directly
     logger.warning("No 'best_state' key — treating checkpoint as plain state dict.")
     return ckpt
-
-
-def stratified_subsample(
-    X: np.ndarray, y: np.ndarray, n: int, seed: int
-) -> tuple[np.ndarray, np.ndarray]:
-    """Stratified subsample: keep all fraud cases, fill remainder with legit."""
-    rng = np.random.default_rng(seed)
-    fraud_idx = np.where(y == 1)[0]
-    legit_idx = np.where(y == 0)[0]
-    n_fraud = len(fraud_idx)
-    n_legit = min(len(legit_idx), n - n_fraud)
-    sel_legit = rng.choice(legit_idx, size=n_legit, replace=False)
-    idx = np.concatenate([fraud_idx, sel_legit])
-    rng.shuffle(idx)
-    return X[idx], y[idx]
-
-
-def evaluate(
-    model: SHNN, X: np.ndarray, y: np.ndarray
-) -> tuple[float, float]:
-    """Return (mcc, threshold) for the given model on X, y."""
-    model.eval()
-    device = next(model.parameters()).device
-    X_t = torch.tensor(X, dtype=torch.float32).to(device)
-    with torch.no_grad():
-        prob = model(X_t).cpu().numpy().flatten()
-    threshold = find_optimal_threshold(y, prob)
-    mcc = matthews_corrcoef(y, (prob >= threshold).astype(int))
-    return float(mcc), float(threshold)
 
 
 def main() -> None:
@@ -100,7 +72,7 @@ def main() -> None:
     if not CHECKPOINT_PATH.exists():
         raise FileNotFoundError(
             f"Checkpoint not found: {CHECKPOINT_PATH}\n"
-            "Regenerate with: pixi run python scripts/run_benchmark.py --model shnn --fold 0"
+            "Regenerate with: pixi run fold -- --model shnn --fold 0"
         )
 
     best_state = load_best_weights(CHECKPOINT_PATH)
@@ -114,51 +86,55 @@ def main() -> None:
     n_fraud = int(fold.y_test.sum())
     logger.info("Test set: %d samples (%d fraud)", len(fold.y_test), n_fraud)
 
+    # Build ideal model (lightning.qubit) and load best weights
+    model = SHNN(input_dim=fold.X_test.shape[1], cfg=cfg.shnn, noise_cfg=None)
+    model.load_state_dict(best_state)
+    model.eval()
+
+    # ── Compute ideal VQC outputs once ────────────────────────────────────────
+    # pre_fc maps input → (0, π) for AngleEmbedding; VQC returns <Z0> per sample.
+    # These are fixed for all noise levels — only the scale factor changes.
+    logger.info("Computing ideal VQC outputs on full test set …")
+    X_t = torch.tensor(fold.X_test, dtype=torch.float32)
+    with torch.no_grad():
+        x = model.pre_fc(X_t)          # (n, n_qubits)
+        vqc_out = model.vqc(x.cpu())   # (n,)  — ideal <Z0> expectation values
+
+    logger.info("VQC output range: [%.4f, %.4f]", vqc_out.min().item(), vqc_out.max().item())
+
     results = []
 
     for p in NOISE_LEVELS:
-        logger.info("── Noise p=%.3f ──", p)
+        # Analytical depolarising: <Z0>_noisy = (1 - 4p/3) × <Z0>_ideal
+        noise_factor = 1.0 - (4.0 * p / 3.0)
+        vqc_noisy = vqc_out * noise_factor  # (n,)
 
-        if p == 0.0:
-            # Ideal: fast lightning.qubit backend, full test set
-            model = SHNN(input_dim=fold.X_test.shape[1], cfg=cfg.shnn, noise_cfg=None)
-            X_eval, y_eval = fold.X_test, fold.y_test
-            eval_label = f"ideal / full test set (n={len(y_eval)})"
-        else:
-            # Noisy: default.mixed backend + stratified subsample
-            noise_cfg = NoiseConfig(
-                enabled=True, backend="default.mixed", depolarizing_p=p
-            )
-            model = SHNN(
-                input_dim=fold.X_test.shape[1], cfg=cfg.shnn, noise_cfg=noise_cfg
-            )
-            X_eval, y_eval = stratified_subsample(
-                fold.X_test, fold.y_test, N_SUBSAMPLE, RANDOM_SEED
-            )
-            eval_label = f"noisy default.mixed (n={len(y_eval)}, fraud={int(y_eval.sum())})"
+        with torch.no_grad():
+            prob = model.post_fc(vqc_noisy.unsqueeze(-1)).numpy().flatten()
 
-        model.load_state_dict(best_state)
-        logger.info("Evaluating: %s …", eval_label)
+        threshold = find_optimal_threshold(fold.y_test, prob)
+        mcc = matthews_corrcoef(fold.y_test, (prob >= threshold).astype(int))
 
-        mcc, threshold = evaluate(model, X_eval, y_eval)
-        logger.info("p=%.3f → MCC=%.4f (threshold=%.2f)", p, mcc, threshold)
-
-        results.append(
-            {
-                "depolarizing_p": p,
-                "mcc": mcc,
-                "threshold": threshold,
-                "n_samples": int(len(y_eval)),
-                "n_fraud": int(y_eval.sum()),
-            }
+        logger.info(
+            "p=%.3f (scale=%.4f) → MCC=%.4f (threshold=%.2f)",
+            p, noise_factor, mcc, threshold,
         )
 
-        # Save incrementally so a crash doesn't lose completed levels
+        results.append({
+            "depolarizing_p": p,
+            "noise_factor": round(noise_factor, 6),
+            "mcc": float(mcc),
+            "threshold": float(threshold),
+            "n_samples": int(len(fold.y_test)),
+            "n_fraud": n_fraud,
+        })
+
+        # Save incrementally
         OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(OUT_PATH, "w") as f:
             json.dump(results, f, indent=2)
-        logger.info("Saved → %s", OUT_PATH)
 
+    logger.info("Saved → %s", OUT_PATH)
     logger.info("── Summary ──")
     for r in results:
         logger.info("p=%.3f → MCC=%.4f", r["depolarizing_p"], r["mcc"])
