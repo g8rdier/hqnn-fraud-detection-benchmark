@@ -1,0 +1,25 @@
+{
+  "model_name": "shnn",
+  "mcc": 0.5450232571779291,
+  "pr_auc": 0.5460277062751441,
+  "f1_fraud": 0.5047318611987381,
+  "roc_auc": 0.9440067529544176,
+  "threshold": 0.9400000000000002,
+  "param_count": {
+    "classical": 74,
+    "quantum": 48,
+    "total": 122
+  },
+  "confusion_matrix": [
+    [
+      56725,
+      139
+    ],
+    [
+      18,
+      80
+    ]
+  ],
+  "fold_idx": 3,
+  "elapsed_seconds": 25617.43607929093
+}

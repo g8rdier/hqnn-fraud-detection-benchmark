@@ -7,15 +7,13 @@ build/
 
 # Pixi
 .pixi/
-pixi.lock
 
 # Data
 data/raw/*.csv
 data/processed/
 
-# Results (large binaries)
+# Results (large binaries — model weights only)
 results/models/*.pt
-results/folds/*.json
 
 # IDE
 .vscode/
