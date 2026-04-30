@@ -124,6 +124,25 @@ All hyperparameters are in `configs/default.yaml`. Pass `--config path/to/custom
 
 ---
 
+## Reproducing Figures
+
+Fold results are committed, so all benchmark figures can be regenerated without re-running the benchmark (~185 h).
+
+```bash
+# 12 benchmark figures — no dataset needed, reads committed results/folds/*.json
+pixi run plots
+
+# 6 conceptual figures — requires creditcard.csv in data/raw/
+pixi run python scripts/run_conceptual_figures.py
+
+# Wilcoxon signed-rank statistics — no dataset needed
+pixi run python scripts/run_statistics.py
+```
+
+All output goes to `results/figures/`.
+
+---
+
 ## Preprocessing Pipeline
 
 | Challenge | Solution |
