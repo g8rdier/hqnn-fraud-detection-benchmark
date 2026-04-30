@@ -16,4 +16,9 @@ jobs:
         with:
           cache: true
 
-      - run: pixi run test
+      - run: pixi run pytest tests/ -v --cov=src --cov-report=xml
+
+      - uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
