@@ -1,0 +1,25 @@
+{
+  "model_name": "parallel",
+  "mcc": 0.5847496555872246,
+  "pr_auc": 0.6183829003024168,
+  "f1_fraud": 0.5591397849462365,
+  "roc_auc": 0.9425246991030515,
+  "threshold": 0.9400000000000002,
+  "param_count": {
+    "classical": 369,
+    "quantum": 120,
+    "total": 489
+  },
+  "confusion_matrix": [
+    [
+      56761,
+      103
+    ],
+    [
+      20,
+      78
+    ]
+  ],
+  "fold_idx": 3,
+  "elapsed_seconds": 36911.200920167146
+}
