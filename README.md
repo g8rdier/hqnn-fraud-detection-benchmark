@@ -1,5 +1,8 @@
 # HQNN Fraud Detection Benchmark
 
+[![CI](https://github.com/g8rdier/hqnn-fraud-detection-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/g8rdier/hqnn-fraud-detection-benchmark/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/g8rdier/hqnn-fraud-detection-benchmark/branch/main/graph/badge.svg)](https://codecov.io/gh/g8rdier/hqnn-fraud-detection-benchmark)
+
 ## Academic Context
 
 | | |
