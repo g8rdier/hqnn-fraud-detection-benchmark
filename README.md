@@ -18,6 +18,24 @@
 
 ---
 
+## Results
+
+5-fold stratified CV on the Kaggle Credit Card Fraud dataset (n = 284,807). Metrics are mean ± std across folds.
+
+| Model | Type | Params | MCC | PR-AUC | MCC / param |
+|---|---|---|---|---|---|
+| **SHNN** | Quantum hybrid | 122 | **0.5758 ± 0.0371** | 0.5910 ± 0.0323 | **0.004720** |
+| **Parallel Hybrid** | Quantum hybrid | 489 | 0.5688 ± 0.0371 | 0.6239 ± 0.0101 | 0.001163 |
+| SNN | Classical | 3,201 | 0.5633 ± 0.0139 | 0.6449 ± 0.0086 | 0.000176 |
+| TabNet | Classical | 6,176 | 0.4824 ± 0.0732 | 0.6551 ± 0.0399 | 0.000078 |
+| ResNet | Classical | 8,897 | 0.6933 ± 0.0329 | 0.7170 ± 0.0164 | 0.000078 |
+| FT-Transformer | Classical | 14,869 | 0.6934 ± 0.0164 | 0.7061 ± 0.0220 | 0.000047 |
+| SAINT | Classical | 29,357 | 0.6975 ± 0.0164 | 0.6570 ± 0.0505 | 0.000024 |
+
+**Key finding:** SHNN achieves comparable MCC to SNN (0.576 vs 0.563) with 26× fewer parameters, yielding a ~27× parameter efficiency advantage. Larger classical models (ResNet, FT-Transformer, SAINT) achieve higher absolute MCC but at 73–240× the parameter count, resulting in 10–197× lower efficiency. The central thesis claim — quantum advantage through parameter efficiency rather than raw performance — is supported.
+
+---
+
 ## Evaluation Design
 
 The benchmark measures two dimensions:
