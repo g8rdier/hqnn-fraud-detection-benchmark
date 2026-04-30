@@ -22,17 +22,17 @@
 
 5-fold stratified CV on the Kaggle Credit Card Fraud dataset (n = 284,807). Metrics are mean ± std across folds.
 
-| Model | Type | Params | MCC | PR-AUC | MCC / param |
-|---|---|---|---|---|---|
-| **SHNN** | Quantum hybrid | 122 | **0.5758 ± 0.0371** | 0.5910 ± 0.0323 | **0.004720** |
-| **Parallel Hybrid** | Quantum hybrid | 489 | 0.5688 ± 0.0371 | 0.6239 ± 0.0101 | 0.001163 |
-| SNN | Classical | 3,201 | 0.5633 ± 0.0139 | 0.6449 ± 0.0086 | 0.000176 |
-| TabNet | Classical | 6,176 | 0.4824 ± 0.0732 | 0.6551 ± 0.0399 | 0.000078 |
-| ResNet | Classical | 8,897 | 0.6933 ± 0.0329 | 0.7170 ± 0.0164 | 0.000078 |
-| FT-Transformer | Classical | 14,869 | 0.6934 ± 0.0164 | 0.7061 ± 0.0220 | 0.000047 |
-| SAINT | Classical | 29,357 | 0.6975 ± 0.0164 | 0.6570 ± 0.0505 | 0.000024 |
+| Model | Type | Params | MCC | PR-AUC | MCC / kParam | PR-AUC / kParam |
+|---|---|---|---|---|---|---|
+| **SHNN** | Quantum hybrid | 122 | 0.5758 ± 0.0371 | 0.5910 ± 0.0323 | 4.720 | 4.844 |
+| **Parallel Hybrid** | Quantum hybrid | 489 | 0.5688 ± 0.0371 | 0.6239 ± 0.0101 | 1.163 | 1.276 |
+| SNN | Classical | 3,201 | 0.5633 ± 0.0139 | 0.6449 ± 0.0086 | 0.176 | 0.201 |
+| TabNet | Classical | 6,176 | 0.4824 ± 0.0732 | 0.6551 ± 0.0399 | 0.078 | 0.106 |
+| ResNet | Classical | 8,897 | 0.6933 ± 0.0329 | 0.7170 ± 0.0164 | 0.078 | 0.081 |
+| FT-Transformer | Classical | 14,869 | 0.6934 ± 0.0164 | 0.7061 ± 0.0220 | 0.047 | 0.047 |
+| SAINT | Classical | 29,357 | 0.6975 ± 0.0164 | 0.6570 ± 0.0505 | 0.024 | 0.022 |
 
-**Key finding:** SHNN achieves comparable MCC to SNN (0.576 vs 0.563) with 26× fewer parameters, yielding a ~27× parameter efficiency advantage. Larger classical models (ResNet, FT-Transformer, SAINT) achieve higher absolute MCC but at 73–240× the parameter count, resulting in 10–197× lower efficiency. The central thesis claim — quantum advantage through parameter efficiency rather than raw performance — is supported.
+**Key finding:** SHNN achieves comparable MCC to SNN (0.576 vs 0.563) with 26× fewer parameters, yielding a ~27× MCC/kParam advantage and ~24× PR-AUC/kParam advantage. Larger classical models (ResNet, FT-Transformer, SAINT) achieve higher absolute MCC but at 73–240× the parameter count, resulting in 60–197× lower efficiency. The central thesis claim — quantum advantage through parameter efficiency rather than raw performance — is supported.
 
 ---
 
@@ -42,23 +42,7 @@ The benchmark measures two dimensions:
 
 **1. Absolute performance** — MCC and PR-AUC across 5 stratified CV folds, reported as mean ± std. Statistical consistency is assessed via the Wilcoxon signed-rank test. Given n=5 folds, the minimum achievable p-value (0.0625) exceeds the standard significance threshold; rank-biserial correlation therefore serves as the primary effect size measure.
 
-**2. Parameter efficiency** — MCC per trainable parameter for each architecture. This operationalises the theoretical quantum expressivity advantage: a small quantum model should achieve disproportionately high MCC relative to its parameter count compared to larger classical baselines.
-
----
-
-## Models
-
-| Model | Type | Parameters (approx.) |
-|---|---|---|
-| **SHNN** (Sequential Hybrid NN) | Quantum hybrid | ~122 |
-| **Parallel Hybrid NN** | Quantum hybrid | ~200 |
-| **SNN** (Self-Normalizing Network) | Classical | ~3,000 |
-| **TabNet** | Classical | ~7,000 |
-| **FT-Transformer** | Classical | ~12,000 |
-| **ResNet** (tabular) | Classical | ~6,000 |
-| **SAINT** | Classical | ~18,000 |
-
-Both HQNN architectures use 8 qubits, 2 VQC layers, and PennyLane's `lightning.qubit` backend with adjoint differentiation.
+**2. Parameter efficiency** — MCC/kParam and PR-AUC/kParam (predictive performance per 1,000 trainable parameters) for each architecture. This operationalises the theoretical quantum expressivity advantage: a small quantum model should achieve disproportionately high performance relative to its parameter count compared to larger classical baselines.
 
 ---
 
