@@ -1,0 +1,202 @@
+[
+  {
+    "model_a": "parallel",
+    "model_b": "ftt",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (ftt > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "ftt",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (ftt > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "resnet",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (resnet > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "resnet",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (resnet > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "saint",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (saint > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "saint",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 3.0,
+    "wilcoxon_p": 0.3125,
+    "rank_biserial": -0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (saint > parallel), r=-0.600, W=3.0, p=0.3125 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "snn",
+    "metric": "MCC",
+    "wilcoxon_statistic": 5.0,
+    "wilcoxon_p": 0.625,
+    "rank_biserial": 0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (parallel > snn), r=0.600, W=5.0, p=0.6250 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "snn",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (snn > parallel), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "tabnet",
+    "metric": "MCC",
+    "wilcoxon_statistic": 1.0,
+    "wilcoxon_p": 0.125,
+    "rank_biserial": 0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (parallel > tabnet), r=0.600, W=1.0, p=0.1250 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "parallel",
+    "model_b": "tabnet",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 3.0,
+    "wilcoxon_p": 0.3125,
+    "rank_biserial": -0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (tabnet > parallel), r=-0.600, W=3.0, p=0.3125 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "ftt",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (ftt > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "ftt",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (ftt > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "resnet",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (resnet > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "resnet",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (resnet > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "saint",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (saint > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "saint",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 1.0,
+    "wilcoxon_p": 0.125,
+    "rank_biserial": -0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (saint > shnn), r=-0.600, W=1.0, p=0.1250 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "snn",
+    "metric": "MCC",
+    "wilcoxon_statistic": 7.0,
+    "wilcoxon_p": 1.0,
+    "rank_biserial": -0.2,
+    "n_folds": 5,
+    "interpretation": "small effect (snn > shnn), r=-0.200, W=7.0, p=1.0000 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "snn",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": -1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (snn > shnn), r=-1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "tabnet",
+    "metric": "MCC",
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p": 0.0625,
+    "rank_biserial": 1.0,
+    "n_folds": 5,
+    "interpretation": "large effect (shnn > tabnet), r=1.000, W=0.0, p=0.0625 (n=5 folds, min p=0.0625)"
+  },
+  {
+    "model_a": "shnn",
+    "model_b": "tabnet",
+    "metric": "PR-AUC",
+    "wilcoxon_statistic": 1.0,
+    "wilcoxon_p": 0.125,
+    "rank_biserial": -0.6,
+    "n_folds": 5,
+    "interpretation": "large effect (tabnet > shnn), r=-0.600, W=1.0, p=0.1250 (n=5 folds, min p=0.0625)"
+  }
+]
