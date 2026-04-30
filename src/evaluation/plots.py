@@ -276,6 +276,180 @@ def plot_confusion_matrices(results: list[dict], save_path: Path) -> None:
     _save(fig, save_path)
 
 
+def plot_aggregated_confusion_matrices(
+    fold_data: dict[str, list[list[list[int]]]],
+    save_path: Path,
+) -> None:
+    """Heatmap grid of confusion matrices aggregated across folds.
+
+    Parameters
+    ----------
+    fold_data : {model_name: [cm_fold0, cm_fold1, ...]} where each cm is [[TN,FP],[FN,TP]]
+    """
+    models = list(fold_data.keys())
+    n = len(models)
+    fig, axes = plt.subplots(1, n, figsize=(4.5 * n, 4))
+    if n == 1:
+        axes = [axes]
+
+    for ax, model in zip(axes, models):
+        cms = np.array(fold_data[model])       # (n_folds, 2, 2)
+        cm_sum = cms.sum(axis=0).astype(int)   # aggregate across folds
+        label = MODEL_LABELS.get(model, model)
+        color = COLORS.get(model, "#636E72")
+
+        # Custom colormap anchored to model colour
+        from matplotlib.colors import LinearSegmentedColormap
+        cmap = LinearSegmentedColormap.from_list("model", ["#ffffff", color])
+
+        sns.heatmap(
+            cm_sum, annot=True, fmt="d", cmap=cmap, ax=ax,
+            xticklabels=["Legit", "Fraud"], yticklabels=["Legit", "Fraud"],
+            linewidths=0.5, linecolor="white",
+        )
+        tn, fp, fn, tp = cm_sum.ravel()
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+        ax.set_title(
+            f"{label}\nRecall={recall:.2f}  Precision={precision:.2f}",
+            fontsize=11, fontweight="bold", pad=8,
+        )
+        ax.set_xlabel("Predicted", fontsize=10)
+        ax.set_ylabel("Actual", fontsize=10)
+
+    fig.suptitle("Aggregated Confusion Matrices (5-Fold CV, summed)",
+                 fontsize=13, fontweight="bold")
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None:
+    """2D scatter: MCC vs PR-AUC with std error bars — shows both primary metrics at once."""
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    for r in results:
+        color = COLORS.get(r.model_name, "#636E72")
+        label = MODEL_LABELS.get(r.model_name, r.model_name)
+        ax.errorbar(
+            r.pr_auc_mean, r.mcc_mean,
+            xerr=r.pr_auc_std, yerr=r.mcc_std,
+            fmt="o", color=color, markersize=10,
+            capsize=4, elinewidth=1.2, alpha=0.85,
+        )
+        ax.annotate(label, (r.pr_auc_mean, r.mcc_mean),
+                    textcoords="offset points", xytext=(8, 5), fontsize=10)
+
+    ax.set_xlabel("PR-AUC (mean ± std)", fontsize=12)
+    ax.set_ylabel("MCC (mean ± std)", fontsize=12)
+    ax.set_title("Performance Space: MCC vs PR-AUC per Model",
+                 fontsize=14, fontweight="bold")
+    ax.set_xlim(0.5, 0.85)
+    ax.set_ylim(0.4, 0.8)
+
+    # Quadrant annotation
+    ax.axvline(0.65, color="gray", linewidth=0.8, linestyle=":", alpha=0.5)
+    ax.axhline(0.58, color="gray", linewidth=0.8, linestyle=":", alpha=0.5)
+
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_efficiency_frontier(results: list[AggregatedMetrics], save_path: Path) -> None:
+    """MCC vs log(params) with Pareto efficiency frontier highlighted."""
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    # Compute Pareto frontier: non-dominated points (max MCC, min params)
+    sorted_by_params = sorted(results, key=lambda r: r.param_count["total"])
+    frontier = []
+    best_mcc = -1.0
+    for r in sorted_by_params:
+        if r.mcc_mean > best_mcc:
+            best_mcc = r.mcc_mean
+            frontier.append(r)
+
+    frontier_names = {r.model_name for r in frontier}
+
+    for r in results:
+        total = r.param_count["total"]
+        color = COLORS.get(r.model_name, "#636E72")
+        label = MODEL_LABELS.get(r.model_name, r.model_name)
+        on_frontier = r.model_name in frontier_names
+        ax.scatter(total, r.mcc_mean,
+                   s=140 if on_frontier else 80,
+                   c=color,
+                   edgecolors="black" if on_frontier else "white",
+                   linewidth=1.5 if on_frontier else 0.8,
+                   zorder=5)
+        ax.errorbar(total, r.mcc_mean, yerr=r.mcc_std,
+                    fmt="none", ecolor=color, capsize=4, alpha=0.6)
+        ax.annotate(label, (total, r.mcc_mean),
+                    textcoords="offset points", xytext=(8, 6), fontsize=10)
+
+    # Draw frontier as step line
+    fx = [r.param_count["total"] for r in frontier]
+    fy = [r.mcc_mean for r in frontier]
+    ax.step(fx + [fx[-1] * 3], fy + [fy[-1]],
+            where="post", color="#2D3436", linewidth=1.5,
+            linestyle="--", alpha=0.6, label="Efficiency frontier")
+
+    ax.set_xlabel("Trainable Parameters (log scale)", fontsize=12)
+    ax.set_ylabel("MCC (mean ± std)", fontsize=12)
+    ax.set_title("Efficiency Frontier: MCC vs Model Complexity",
+                 fontsize=14, fontweight="bold")
+    ax.set_xscale("log")
+    ax.legend(fontsize=10)
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_fold_trajectories(results: list[AggregatedMetrics], save_path: Path) -> None:
+    """Line plot of fold-by-fold MCC for each model — shows directional trends."""
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    folds = list(range(5))
+    for r in results:
+        color = COLORS.get(r.model_name, "#636E72")
+        label = MODEL_LABELS.get(r.model_name, r.model_name)
+        ax.plot(folds, r.fold_mccs, marker="o", linewidth=1.8,
+                color=color, label=label, markersize=6, alpha=0.85)
+
+    ax.set_xlabel("Fold", fontsize=12)
+    ax.set_ylabel("MCC", fontsize=12)
+    ax.set_xticks(folds)
+    ax.set_xticklabels([f"Fold {i}" for i in folds])
+    ax.set_title("Fold-by-Fold MCC Trajectories", fontsize=14, fontweight="bold")
+    ax.legend(loc="lower right", fontsize=9, ncol=2)
+    ax.set_ylim(0.3, 0.8)
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_vqc_circuit(n_qubits: int, n_layers: int, save_path: Path) -> None:
+    """Gate-level VQC circuit diagram via PennyLane draw_mpl."""
+    import pennylane as qml
+    import torch
+
+    dev = qml.device("lightning.qubit", wires=n_qubits)
+
+    @qml.qnode(dev, interface="torch")
+    def circuit(inputs, weights):
+        qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation="Y")
+        qml.StronglyEntanglingLayers(weights, wires=range(n_qubits))
+        return qml.expval(qml.PauliZ(0))
+
+    inputs = torch.zeros(n_qubits)
+    weights = torch.zeros(n_layers, n_qubits, 3)
+
+    fig, _ = qml.draw_mpl(circuit, level="device")(inputs, weights)
+    fig.set_size_inches(16, 6)
+    fig.suptitle(
+        f"VQC Circuit: AngleEmbedding + StronglyEntanglingLayers "
+        f"({n_qubits} qubits, {n_layers} layers, {n_layers * n_qubits * 3} parameters)",
+        fontsize=12, fontweight="bold", y=1.02,
+    )
+    _save(fig, save_path)
+
+
 def plot_pr_curves(results: list[dict], save_path: Path) -> None:
     """Precision-Recall curves. results: list of dicts with name, y_true, y_prob."""
     from sklearn.metrics import precision_recall_curve, average_precision_score

@@ -30,11 +30,16 @@ from src.evaluation.metrics import AggregatedMetrics
 from src.evaluation.plots import (
     plot_ablation_noise,
     plot_ablation_vqc,
+    plot_aggregated_confusion_matrices,
     plot_efficiency_comparison,
+    plot_efficiency_frontier,
     plot_fold_consistency,
+    plot_fold_trajectories,
+    plot_mcc_vs_prauc,
     plot_metric_comparison,
     plot_parameter_efficiency,
     plot_statistical_heatmap,
+    plot_vqc_circuit,
 )
 
 console = Console()
@@ -149,6 +154,34 @@ def main() -> None:
         plot_ablation_noise(noise_data, out / "ablation_noise.png")
     else:
         logger.warning("results/ablation_noise.json not found — skipping noise plot")
+
+    # ── 8. Aggregated confusion matrices (quantum models only) ────────────
+    fold_cms: dict[str, list] = {}
+    for path in sorted(args.folds_dir.glob("*.json")):
+        d = json.loads(path.read_text())
+        model = d["model_name"]
+        if "confusion_matrix" in d:
+            fold_cms.setdefault(model, []).append(d["confusion_matrix"])
+    if fold_cms:
+        plot_aggregated_confusion_matrices(fold_cms, out / "confusion_matrices.png")
+
+    # ── 9. MCC vs PR-AUC scatter ──────────────────────────────────────────
+    plot_mcc_vs_prauc(all_results, out / "mcc_vs_prauc.png")
+
+    # ── 10. Efficiency frontier ───────────────────────────────────────────
+    plot_efficiency_frontier(all_results, out / "efficiency_frontier.png")
+
+    # ── 11. Fold trajectories ─────────────────────────────────────────────
+    plot_fold_trajectories(all_results, out / "fold_trajectories.png")
+
+    # ── 12. VQC circuit diagram ───────────────────────────────────────────
+    from src.config import load_config
+    cfg = load_config(Path("configs/default.yaml"))
+    plot_vqc_circuit(
+        n_qubits=cfg.shnn.vqc.n_qubits,
+        n_layers=cfg.shnn.vqc.n_layers,
+        save_path=out / "vqc_circuit.png",
+    )
 
     console.print(f"\n[bold green]All figures saved to {out}/[/]")
 
