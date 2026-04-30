@@ -450,6 +450,278 @@ def plot_vqc_circuit(n_qubits: int, n_layers: int, save_path: Path) -> None:
     _save(fig, save_path)
 
 
+def plot_class_imbalance(n_legit: int, n_fraud: int, save_path: Path) -> None:
+    """Side-by-side bar + inset pie showing the extreme class imbalance."""
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+
+    # Left: absolute counts (log scale so fraud is visible)
+    ax = axes[0]
+    bars = ax.bar(["Legitimate", "Fraud"], [n_legit, n_fraud],
+                  color=["#636E72", COLORS["shnn"]], alpha=0.85, edgecolor="white")
+    ax.set_yscale("log")
+    ax.set_ylabel("Number of transactions (log scale)", fontsize=11)
+    ax.set_title("Absolute Class Counts", fontsize=12, fontweight="bold")
+    for bar, val in zip(bars, [n_legit, n_fraud]):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() * 1.3,
+                f"{val:,}", ha="center", va="bottom", fontsize=11)
+
+    # Right: pie with exploded fraud slice
+    ax2 = axes[1]
+    total = n_legit + n_fraud
+    fraud_pct = n_fraud / total * 100
+    legit_pct = n_legit / total * 100
+    wedges, texts, autotexts = ax2.pie(
+        [n_legit, n_fraud],
+        labels=[f"Legitimate\n({legit_pct:.2f}%)", f"Fraud\n({fraud_pct:.2f}%)"],
+        colors=["#636E72", COLORS["shnn"]],
+        explode=(0, 0.12),
+        autopct="%1.2f%%",
+        startangle=90,
+        textprops={"fontsize": 10},
+    )
+    for at in autotexts:
+        at.set_fontsize(9)
+    ax2.set_title("Class Distribution", fontsize=12, fontweight="bold")
+
+    fig.suptitle(
+        f"Credit Card Fraud Dataset — Extreme Class Imbalance "
+        f"(n = {total:,})",
+        fontsize=13, fontweight="bold",
+    )
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) -> None:
+    """Stacked bar: quantum vs classical parameter count per model."""
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
+    classical_params = [r.param_count.get("classical", r.param_count.get("total", 0))
+                        for r in results]
+    quantum_params = [r.param_count.get("quantum", 0) for r in results]
+
+    x = np.arange(len(names))
+    b_classical = ax.bar(x, classical_params, label="Classical parameters",
+                         color="#636E72", alpha=0.85, edgecolor="white")
+    b_quantum = ax.bar(x, quantum_params, bottom=classical_params,
+                       label="Quantum parameters", color=COLORS["shnn"],
+                       alpha=0.85, edgecolor="white")
+
+    ax.set_yscale("log")
+    # Floor must be below the smallest classical count (SHNN=74) so that bar is visible
+    all_nonzero = [v for v in classical_params + quantum_params if v > 0]
+    ax.set_ylim(bottom=min(all_nonzero) * 0.3)
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, fontsize=10)
+    ax.set_ylabel("Parameter count (log scale)", fontsize=12)
+    ax.set_title("Trainable Parameter Breakdown: Classical vs Quantum",
+                 fontsize=13, fontweight="bold")
+    ax.legend(fontsize=10)
+
+    for xi, (c, q) in enumerate(zip(classical_params, quantum_params)):
+        total = c + q
+        ax.text(xi, total * 1.4, f"{total:,}", ha="center", va="bottom", fontsize=8)
+        if q > 0:
+            # For small bars place the split label above; for tall bars, inside
+            y_lim_min = ax.get_ylim()[0]
+            inside_height = total / y_lim_min  # ratio of bar height in log space
+            if inside_height > 3:
+                ax.text(xi, total * 0.4, f"{q}q / {c}c",
+                        ha="center", va="center", fontsize=7.5,
+                        color="white", fontweight="bold")
+            else:
+                ax.text(xi, total * 2.2, f"{q}q / {c}c",
+                        ha="center", va="bottom", fontsize=7.5,
+                        color="#2D3436", fontweight="bold")
+
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
+    """2^n exponential growth curve with a marker at the thesis qubit count."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    n_range = np.arange(1, 21)
+    dims = 2.0 ** n_range
+
+    ax.plot(n_range, dims, linewidth=2.5, color=COLORS["shnn"], zorder=3)
+    ax.fill_between(n_range, dims, alpha=0.08, color=COLORS["shnn"])
+
+    # Highlight thesis qubit count
+    highlight_dim = 2 ** n_qubits_highlight
+    ax.scatter([n_qubits_highlight], [highlight_dim], s=150, zorder=5,
+               color=COLORS["shnn"], edgecolors="black", linewidth=1.5)
+    ax.annotate(
+        f"  This thesis\n  n={n_qubits_highlight} qubits\n  2^{n_qubits_highlight} = {int(highlight_dim)} dims",
+        (n_qubits_highlight, highlight_dim),
+        textcoords="offset points", xytext=(10, -30),
+        fontsize=10, color="#2D3436",
+        arrowprops={"arrowstyle": "->", "color": "#2D3436", "lw": 1.2},
+    )
+
+    # Reference lines for classical bits
+    for bits, label in [(8, "8-bit"), (16, "16-bit"), (32, "32-bit")]:
+        if bits <= 20:
+            ax.axhline(2 ** bits, color="gray", linewidth=0.8,
+                       linestyle=":", alpha=0.5)
+            ax.text(20.2, 2 ** bits, label, va="center", fontsize=8, color="gray")
+
+    ax.set_xlabel("Number of qubits (n)", fontsize=12)
+    ax.set_ylabel("Hilbert space dimension (2ⁿ)", fontsize=12)
+    ax.set_title("Exponential Growth of Quantum State Space",
+                 fontsize=14, fontweight="bold")
+    ax.set_yscale("log", base=2)
+    ax.set_xlim(1, 21)
+    ax.xaxis.set_major_locator(plt.MultipleLocator(2))
+
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_shnn_architecture(save_path: Path) -> None:
+    """Flow diagram of the full SHNN hybrid pipeline."""
+    fig, ax = plt.subplots(figsize=(13, 3.5))
+    ax.set_xlim(0, 13)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    blocks = [
+        (0.4,  "Input\n(8 features)",     "#DFE6E9", "black"),
+        (2.0,  "Linear\n8→8",             "#DFE6E9", "black"),
+        (3.6,  "PiSigmoid\n×π",           "#DFE6E9", "black"),
+        (5.5,  "VQC\n8 qubits · 2 layers\n48 params", "#D8CCF5", COLORS["shnn"]),
+        (7.8,  "<Z0>\nMeasurement",         "#D8CCF5", COLORS["shnn"]),
+        (9.4,  "Linear\n1→1",             "#DFE6E9", "black"),
+        (11.0, "Sigmoid\n→ P(fraud)",      "#DFE6E9", "black"),
+    ]
+
+    box_w, box_h = 1.35, 0.52
+    cy = 0.55
+
+    for i, (cx, label, facecolor, edgecolor) in enumerate(blocks):
+        fancy = plt.matplotlib.patches.FancyBboxPatch(
+            (cx - box_w / 2, cy - box_h / 2), box_w, box_h,
+            boxstyle="round,pad=0.04",
+            facecolor=facecolor, edgecolor=edgecolor, linewidth=1.8, zorder=3,
+        )
+        ax.add_patch(fancy)
+        ax.text(cx, cy, label, ha="center", va="center",
+                fontsize=8.5, fontweight="bold", zorder=4, color="#2D3436")
+
+        if i < len(blocks) - 1:
+            next_cx = blocks[i + 1][0]
+            ax.annotate(
+                "", xy=(next_cx - box_w / 2 - 0.03, cy),
+                xytext=(cx + box_w / 2 + 0.03, cy),
+                arrowprops={"arrowstyle": "->", "color": "#636E72", "lw": 1.5},
+                zorder=2,
+            )
+
+    # Bracket: quantum section
+    q_start = blocks[3][0] - box_w / 2 - 0.05
+    q_end = blocks[4][0] + box_w / 2 + 0.05
+    bracket_y = cy - box_h / 2 - 0.12
+    ax.annotate(
+        "", xy=(q_end, bracket_y), xytext=(q_start, bracket_y),
+        arrowprops={"arrowstyle": "<->", "color": COLORS["shnn"], "lw": 1.5},
+    )
+    ax.text((q_start + q_end) / 2, bracket_y - 0.08,
+            "Quantum module (PennyLane · lightning.qubit)",
+            ha="center", fontsize=8.5, color=COLORS["shnn"], style="italic")
+
+    ax.set_title("SHNN — Sequential Hybrid Neural Network Architecture",
+                 fontsize=13, fontweight="bold", pad=8)
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_pca_scree(X: np.ndarray, n_highlight: int, save_path: Path) -> None:
+    """Scree plot of cumulative explained variance, vertical line at n_highlight."""
+    from sklearn.decomposition import PCA
+
+    pca = PCA().fit(X)
+    cumvar = np.cumsum(pca.explained_variance_ratio_) * 100
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    components = np.arange(1, len(cumvar) + 1)
+    ax.plot(components, cumvar, marker="o", linewidth=2,
+            color=COLORS["shnn"], markersize=5)
+    ax.fill_between(components, cumvar, alpha=0.08, color=COLORS["shnn"])
+
+    ax.axvline(n_highlight, color=COLORS["shnn"], linewidth=1.8,
+               linestyle="--", alpha=0.8)
+    ax.axhline(cumvar[n_highlight - 1], color="#636E72", linewidth=1,
+               linestyle=":", alpha=0.6)
+    ax.scatter([n_highlight], [cumvar[n_highlight - 1]], s=120, zorder=5,
+               color=COLORS["shnn"], edgecolors="black", linewidth=1.5)
+    ax.annotate(
+        f"  {n_highlight} components\n  {cumvar[n_highlight-1]:.1f}% variance",
+        (n_highlight, cumvar[n_highlight - 1]),
+        textcoords="offset points", xytext=(10, -25),
+        fontsize=10,
+        arrowprops={"arrowstyle": "->", "color": "#2D3436", "lw": 1.2},
+    )
+
+    ax.set_xlabel("Number of principal components", fontsize=12)
+    ax.set_ylabel("Cumulative explained variance (%)", fontsize=12)
+    ax.set_title("PCA Scree Plot — Feature Dimensionality Reduction",
+                 fontsize=13, fontweight="bold")
+    ax.set_xlim(1, len(cumvar))
+    ax.set_ylim(0, 102)
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
+def plot_smote_illustration(
+    X_before: np.ndarray, y_before: np.ndarray,
+    X_after: np.ndarray, y_after: np.ndarray,
+    save_path: Path,
+) -> None:
+    """2D PCA projection of fraud samples before/after SMOTE."""
+    from sklearn.decomposition import PCA
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    for ax, X, y, title in [
+        (axes[0], X_before, y_before, "Before SMOTE"),
+        (axes[1], X_after, y_after, "After SMOTE"),
+    ]:
+        # Fit a fresh 2D PCA for each dataset independently (feature counts differ)
+        pca = PCA(n_components=2).fit(X)
+        X_2d = pca.transform(X)
+        legit_mask = y == 0
+        fraud_mask = y == 1
+
+        # Sample legit points to avoid overplotting
+        legit_idx = np.where(legit_mask)[0]
+        sample_idx = np.random.default_rng(42).choice(
+            legit_idx, size=min(500, len(legit_idx)), replace=False
+        )
+
+        ax.scatter(X_2d[sample_idx, 0], X_2d[sample_idx, 1],
+                   c="#DFE6E9", s=12, alpha=0.5, label="Legitimate (sample)", zorder=2)
+        fraud_idx = np.where(fraud_mask)[0]
+        fraud_sample = np.random.default_rng(42).choice(
+            fraud_idx, size=min(2000, len(fraud_idx)), replace=False
+        )
+        ax.scatter(X_2d[fraud_sample, 0], X_2d[fraud_sample, 1],
+                   c=COLORS["shnn"], s=20, alpha=0.7,
+                   label=f"Fraud (n={fraud_mask.sum():,})", zorder=3)
+
+        ax.set_title(title, fontsize=12, fontweight="bold")
+        ax.set_xlabel("PC 1", fontsize=10)
+        ax.set_ylabel("PC 2", fontsize=10)
+        ax.legend(fontsize=9)
+
+    fig.suptitle("SMOTE: Synthetic Minority Oversampling in PCA Space (fold 0 train set)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
 def plot_pr_curves(results: list[dict], save_path: Path) -> None:
     """Precision-Recall curves. results: list of dicts with name, y_true, y_prob."""
     from sklearn.metrics import precision_recall_curve, average_precision_score
