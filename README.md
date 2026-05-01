@@ -23,6 +23,19 @@ This study explicitly avoids framing HQNNs as absolute performance replacements 
 
 ---
 
+## Hypotheses
+
+**H1 — Parameter Efficiency Advantage**
+HQNNs achieve higher MCC/kParam and PR-AUC/kParam ratios than all classical baselines.
+
+**H2 — Competitive Absolute Performance**
+HQNNs achieve MCC not significantly inferior to SNN (the closest classical baseline by parameter count), with MCC as the primary classification metric. PR-AUC is reported as a secondary metric and may show a modest disadvantage consistent with the parameter constraint. Notably, SHNN also surpasses TabNet in MCC despite using 50× fewer parameters.
+
+**H3 — Non-Trivial VQC Contribution**
+The VQC component provides a non-trivial predictive signal; removing it causes the model to collapse to random prediction (operationalised via the ablation study).
+
+---
+
 ## Results
 
 5-fold stratified CV on the Kaggle Credit Card Fraud dataset (n = 284,807). Metrics are mean ± std across folds.
