@@ -1648,7 +1648,7 @@ packages:
 - pypi: ./
   name: hqnn-fraud-detection-benchmark
   version: 0.1.0
-  sha256: f0beb3b77ad1b842a6a7f862b9d50b5c07e1d3cfba1ad7bde5efcdd51f51d152
+  sha256: 467e5065d813a9a318f6c0ffb14ddad70c70cfe811708c3e62a73ca56050ac98
   requires_python: '>=3.12,<3.13'
 - conda: https://conda.anaconda.org/conda-forge/noarch/httpcore-1.0.9-pyh29332c3_0.conda
   sha256: 04d49cb3c42714ce533a8553986e1642d0549a05dc5cc48e0d43ff5be6679a5b
