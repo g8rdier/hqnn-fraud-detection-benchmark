@@ -17,7 +17,9 @@
 
 ## Research Question
 
-> "To what extent do Hybrid Quantum Neural Networks (HQNNs) demonstrate Parameter Efficiency Advantage — defined as achieving comparable or superior MCC and PR-AUC scores with significantly fewer trainable parameters — over state-of-the-art classical models for imbalanced financial data?"
+This study explicitly avoids framing HQNNs as absolute performance replacements for classical deep learning. Given the physical constraints of the NISQ era and the inherently parameter-hungry nature of classical architectures, the primary objective is to evaluate **efficiency of feature extraction**: whether HQNNs can extract a highly concentrated predictive signal using a fraction of the structural complexity required by state-of-the-art classical models.
+
+> "To what extent do Hybrid Quantum Neural Networks (HQNNs) demonstrate a Parameter Efficiency Advantage — defined by superior ratios of predictive performance to trainable parameter count (MCC/kParam and PR-AUC/kParam) — over state-of-the-art classical models when classifying highly imbalanced financial tabular data?"
 
 ---
 
