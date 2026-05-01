@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| **Degree** | Bachelor of Science in Artificial Intelligence |
+| **Degree** | Bachelor of Science Business Informatics |
 | **Institution** | IU International University of Applied Sciences, Munich |
 | **Supervisor** | Prof. Dr. rer. nat. Michael Barth |
 | **Student** | Gregor Kobilarov |
