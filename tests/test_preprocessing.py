@@ -48,3 +48,9 @@ def test_n_features_out(sample_data):
     pp = FoldPreprocessor(config=cfg)
     pp.fit_transform(X_train)
     assert pp.n_features_out == 4
+
+
+def test_n_features_out_before_fit():
+    cfg = PreprocessingConfig(n_components=4)
+    pp = FoldPreprocessor(config=cfg)
+    assert pp.n_features_out == 0

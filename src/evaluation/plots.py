@@ -255,27 +255,6 @@ def plot_ablation_noise(noise_data: list[dict], save_path: Path) -> None:
     _save(fig, save_path)
 
 
-def plot_confusion_matrices(results: list[dict], save_path: Path) -> None:
-    """Grid of confusion matrices. results: list of dicts with name, y_true, y_pred."""
-    n = len(results)
-    fig, axes = plt.subplots(1, n, figsize=(5 * n, 4))
-    if n == 1:
-        axes = [axes]
-
-    for ax, r in zip(axes, results):
-        from sklearn.metrics import confusion_matrix
-        cm = confusion_matrix(r["y_true"], r["y_pred"])
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax,
-                    xticklabels=["Legit", "Fraud"], yticklabels=["Legit", "Fraud"])
-        ax.set_title(r["name"], fontsize=12, fontweight="bold")
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("Actual")
-
-    fig.suptitle("Confusion Matrices", fontsize=14, fontweight="bold", y=1.02)
-    fig.tight_layout()
-    _save(fig, save_path)
-
-
 def plot_aggregated_confusion_matrices(
     fold_data: dict[str, list[list[list[int]]]],
     save_path: Path,
@@ -523,17 +502,9 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
         total = c + q
         ax.text(xi, total * 1.4, f"{total:,}", ha="center", va="bottom", fontsize=8)
         if q > 0:
-            # For small bars place the split label above; for tall bars, inside
-            y_lim_min = ax.get_ylim()[0]
-            inside_height = total / y_lim_min  # ratio of bar height in log space
-            if inside_height > 3:
-                ax.text(xi, total * 0.4, f"{q}q / {c}c",
-                        ha="center", va="center", fontsize=7.5,
-                        color="white", fontweight="bold")
-            else:
-                ax.text(xi, total * 2.2, f"{q}q / {c}c",
-                        ha="center", va="bottom", fontsize=7.5,
-                        color="#2D3436", fontweight="bold")
+            ax.text(xi, total * 0.4, f"{q}q / {c}c",
+                    ha="center", va="center", fontsize=7.5,
+                    color="white", fontweight="bold")
 
     fig.tight_layout()
     _save(fig, save_path)
@@ -722,22 +693,3 @@ def plot_smote_illustration(
     _save(fig, save_path)
 
 
-def plot_pr_curves(results: list[dict], save_path: Path) -> None:
-    """Precision-Recall curves. results: list of dicts with name, y_true, y_prob."""
-    from sklearn.metrics import precision_recall_curve, average_precision_score
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    for r in results:
-        precision, recall, _ = precision_recall_curve(r["y_true"], r["y_prob"])
-        ap = average_precision_score(r["y_true"], r["y_prob"])
-        ax.plot(recall, precision, label=f"{r['name']} (AP={ap:.3f})",
-                color=COLORS.get(r["name"].lower()), linewidth=2)
-
-    ax.set_xlabel("Recall", fontsize=12)
-    ax.set_ylabel("Precision", fontsize=12)
-    ax.set_title("Precision-Recall Curves", fontsize=14, fontweight="bold")
-    ax.legend(loc="lower left", fontsize=10)
-    ax.set_xlim(0, 1.02)
-    ax.set_ylim(0, 1.05)
-    fig.tight_layout()
-    _save(fig, save_path)

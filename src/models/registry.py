@@ -66,4 +66,4 @@ def build_model(name: str, input_dim: int, cfg: BenchmarkConfig) -> nn.Module | 
         from src.models.classical.saint import SAINT
         return SAINT(input_dim=input_dim, cfg=cfg.saint)
 
-    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt, resnet, saint")
+    raise ValueError(f"Unknown model: '{name}'. Choose from: shnn, parallel, snn, tabnet, ftt, resnet, saint")  # pragma: no cover
