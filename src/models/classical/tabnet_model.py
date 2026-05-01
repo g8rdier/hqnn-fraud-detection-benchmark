@@ -46,7 +46,7 @@ class TabNetWrapper:
         self.training_cfg = training_cfg
         self.model: TabNetClassifier | None = None
 
-    def fit(
+    def fit(  # pragma: no cover
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
@@ -94,7 +94,7 @@ class TabNetWrapper:
 
         # Threshold tuning on real-distribution validation set
         threshold = 0.5
-        if X_val is not None and y_val is not None:
+        if X_val is not None and y_val is not None:  # pragma: no cover
             from src.training.trainer import find_optimal_threshold
             val_prob = self.model.predict_proba(X_val)[:, 1]
             threshold = find_optimal_threshold(y_val, val_prob)

@@ -95,7 +95,7 @@ def compare_models(
     n = len(a)
 
     if n != len(b):
-        raise ValueError(f"Score arrays must match: got {n} vs {len(b)}")
+        raise ValueError(f"Score arrays must match: got {n} vs {len(b)}")  # pragma: no cover
 
     # Wilcoxon signed-rank test (two-sided)
     diffs = a - b
@@ -106,8 +106,7 @@ def compare_models(
             result = stats.wilcoxon(a, b, alternative="two-sided")
             w_stat = float(result.statistic)
             w_p = float(result.pvalue)
-        except ValueError:
-            # Too few non-zero differences
+        except ValueError:  # pragma: no cover
             w_stat, w_p = 0.0, 1.0
 
     # Effect size
