@@ -196,12 +196,12 @@ Statistical test: Wilcoxon signed-rank, effect size: rank-biserial correlation.
 
 ## Ablation
 
-A structural ablation replaces the VQC output with a constant zero vector to isolate the quantum contribution:
+A structural ablation replaces the VQC output with a constant zero vector to isolate the quantum contribution. Both conditions were trained from scratch for 10 epochs on fold 0 under identical conditions:
 
 | Condition | MCC | Loss |
 |---|---|---|
-| SHNN (full) | ~0.22 | ~0.08 |
-| SHNN (VQC → zeros) | 0.000 | 0.6932 (random) |
+| SHNN (full, 10 epochs) | ~0.22 | ~0.08 |
+| SHNN (VQC → zeros, 10 epochs) | 0.000 | 0.6932 (random) |
 
 The VQC provides 100% of the model's predictive signal. Without it, SHNN collapses to random prediction.
 
