@@ -18,6 +18,15 @@ from src.evaluation.metrics import AggregatedMetrics
 logger = logging.getLogger(__name__)
 
 plt.style.use("seaborn-v0_8-whitegrid")
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.size": 10,
+    "axes.titlesize": 13,
+    "axes.labelsize": 11,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+})
 
 COLORS = {
     "shnn": "#6C5CE7",
@@ -42,7 +51,7 @@ MODEL_LABELS = {
 
 def _save(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved: %s", path)
 
@@ -272,8 +281,8 @@ def plot_aggregated_confusion_matrices(
         axes = [axes]
 
     for ax, model in zip(axes, models):
-        cms = np.array(fold_data[model])       # (n_folds, 2, 2)
-        cm_sum = cms.sum(axis=0).astype(int)   # aggregate across folds
+        cms = np.array(fold_data[model])                        # (n_folds, 2, 2)
+        cm_sum = np.round(cms.mean(axis=0)).astype(int)         # mean across folds
         label = MODEL_LABELS.get(model, model)
         color = COLORS.get(model, "#636E72")
 
@@ -296,8 +305,11 @@ def plot_aggregated_confusion_matrices(
         ax.set_xlabel("Predicted", fontsize=10)
         ax.set_ylabel("Actual", fontsize=10)
 
-    fig.suptitle("Aggregated Confusion Matrices (5-Fold CV, summed)",
-                 fontsize=13, fontweight="bold")
+    fig.suptitle(
+        "Mean Confusion Matrices for HQNN Architectures on the Held-Out Test Set\n"
+        "held-out test set, n = 56,962; 98 frauds",
+        fontsize=13, fontweight="bold",
+    )
     fig.tight_layout()
     _save(fig, save_path)
 
