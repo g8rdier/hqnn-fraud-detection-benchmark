@@ -226,7 +226,7 @@ def plot_ablation_vqc(shnn_mcc: float, shnn_std: float, save_path: Path) -> None
                   error_kw={"linewidth": 1.5})
     ax.set_ylabel("MCC", fontsize=12)
     ax.set_ylim(0, 1.0)
-    ax.set_title("Structural Ablation: Quantum Contribution to SHNN",
+    ax.set_title("Quantum Contribution to SHNN (VQC Ablation)",
                  fontsize=13, fontweight="bold", pad=10)
 
     for bar, val, err in zip(bars, values, errors):
@@ -254,7 +254,7 @@ def plot_ablation_noise(noise_data: list[dict], save_path: Path) -> None:
 
     ax.set_xlabel("Depolarizing noise probability (p)", fontsize=12)
     ax.set_ylabel("MCC", fontsize=12)
-    ax.set_title("NISQ Noise Robustness: SHNN MCC vs Depolarizing Noise",
+    ax.set_title("SHNN MCC vs. Depolarizing Noise",
                  fontsize=13, fontweight="bold")
     ax.legend(fontsize=10)
     ax.set_ylim(0, 1.0)
@@ -306,8 +306,8 @@ def plot_aggregated_confusion_matrices(
         ax.set_ylabel("Actual", fontsize=10)
 
     fig.suptitle(
-        "Mean Confusion Matrices for HQNN Architectures on the Held-Out Test Set\n"
-        "held-out test set, n = 56,962; 98 frauds",
+        "Mean Confusion Matrices — Held-Out Test Set\n"
+        "n = 56,962; 98 frauds",
         fontsize=13, fontweight="bold",
     )
     fig.tight_layout()
