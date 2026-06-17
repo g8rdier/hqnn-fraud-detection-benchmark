@@ -68,7 +68,7 @@ def plot_metric_comparison(results: list[AggregatedMetrics], save_path: Path) ->
          "MCC (primary)", "MCC"),
         (axes[1],
          [r.pr_auc_mean for r in results], [r.pr_auc_std for r in results],
-         "PR-AUC (primary)", "PR-AUC"),
+         "PR-AUC (threshold-independent)", "PR-AUC"),
     ]:
         bars = ax.bar(names, means, yerr=stds, capsize=5,
                       color=colors, alpha=0.85, edgecolor="white", error_kw={"linewidth": 1.5})
