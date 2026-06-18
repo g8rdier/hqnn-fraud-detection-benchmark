@@ -1,0 +1,6 @@
+model,threshold_mean,threshold_std,TP_mean,TP_std,FP_mean,FP_std,FN_mean,FN_std,recall_mean,recall_std,precision_mean,precision_std,mcc_mean,mcc_std
+SNN,0.94,0.0,79.4,0.5,123,10.6,18.6,0.5,0.8102,0.0056,0.3932,0.0211,0.5633,0.0156
+Tabular ResNet,0.878,0.1128,71.2,4.1,37,13.0,26.8,4.1,0.7265,0.0417,0.665,0.0693,0.6933,0.0367
+FT-Transformer,0.936,0.0089,72.8,2.8,39.6,5.1,25.2,2.8,0.7429,0.0283,0.6487,0.0277,0.6934,0.0183
+SAINT,0.764,0.1888,68.8,2.7,30.6,7.1,29.2,2.7,0.702,0.0274,0.6953,0.0454,0.6975,0.0183
+TabNet,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,0.4824,0.0732
