@@ -40,7 +40,7 @@ COLORS = {
 
 MODEL_LABELS = {
     "shnn": "SHNN",
-    "parallel": "Parallel",
+    "parallel": "PHNN",
     "snn": "SNN",
     "tabnet": "TabNet",
     "resnet": "ResNet",
