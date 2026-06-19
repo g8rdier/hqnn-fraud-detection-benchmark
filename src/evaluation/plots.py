@@ -484,39 +484,55 @@ def plot_class_imbalance(n_legit: int, n_fraud: int, save_path: Path) -> None:
 
 
 def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) -> None:
-    """Stacked bar: quantum vs classical parameter count per model."""
+    """Single solid bars: total trainable parameters per model on a log axis.
+
+    The story is the order-of-magnitude size gap between the quantum-hybrid
+    models and the classical baselines. Bars are not stacked or colour-split:
+    stacking two segments on a log axis makes their heights non-proportional to
+    the actual values, which misrepresents the quantum share. For the two hybrid
+    models the verified quantum/classical split is shown as plain text only.
+
+    "Quantum" here means the trainable VQC angles (StronglyEntanglingLayers,
+    n_layers x n_qubits x 3 = 48 for both hybrids). The parallel model's
+    ``vqc_proj`` Linear lives in the quantum branch but is classical, so it is
+    not counted as quantum despite ``param_count["quantum"]`` lumping it in.
+    """
     fig, ax = plt.subplots(figsize=(10, 5))
 
     names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
-    classical_params = [r.param_count.get("classical", r.param_count.get("total", 0))
-                        for r in results]
-    quantum_params = [r.param_count.get("quantum", 0) for r in results]
+    totals = [
+        r.param_count.get(
+            "total",
+            r.param_count.get("classical", 0) + r.param_count.get("quantum", 0),
+        )
+        for r in results
+    ]
 
     x = np.arange(len(names))
-    b_classical = ax.bar(x, classical_params, label="Classical parameters",
-                         color="#636E72", alpha=0.85, edgecolor="white")
-    b_quantum = ax.bar(x, quantum_params, bottom=classical_params,
-                       label="Quantum parameters", color=COLORS["shnn"],
-                       alpha=0.85, edgecolor="white")
+    ax.bar(x, totals, color="#636E72", alpha=0.85, edgecolor="white")
 
     ax.set_yscale("log")
-    # Floor must be below the smallest classical count (SHNN=74) so that bar is visible
-    all_nonzero = [v for v in classical_params + quantum_params if v > 0]
-    ax.set_ylim(bottom=min(all_nonzero) * 0.3)
+    # Floor must sit below the smallest total (SHNN=122) so that bar is visible.
+    ax.set_ylim(bottom=min(v for v in totals if v > 0) * 0.3)
     ax.set_xticks(x)
     ax.set_xticklabels(names, fontsize=10)
-    ax.set_ylabel("Parameter count (log scale)", fontsize=12)
-    ax.set_title("Trainable Parameter Breakdown: Classical vs Quantum",
+    ax.set_ylabel("Total trainable parameters (log scale)", fontsize=12)
+    ax.set_title("Total Trainable Parameters per Model",
                  fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10)
 
-    for xi, (c, q) in enumerate(zip(classical_params, quantum_params)):
-        total = c + q
+    # Verified true-quantum split for the two hybrid models: quantum = trainable
+    # VQC angles (48); classical = total - 48. See function docstring above.
+    VQC_ANGLE_PARAMS = 48
+    HYBRID_MODELS = {"shnn", "parallel"}
+
+    for xi, (r, total) in enumerate(zip(results, totals)):
         ax.text(xi, total * 1.4, f"{total:,}", ha="center", va="bottom", fontsize=8)
-        if q > 0:
-            ax.text(xi, total * 0.4, f"{q}q / {c}c",
-                    ha="center", va="center", fontsize=7.5,
-                    color="white", fontweight="bold")
+        if r.model_name in HYBRID_MODELS:
+            quantum = VQC_ANGLE_PARAMS
+            classical = total - quantum
+            ax.text(xi, total * 2.3, f"{quantum} quantum / {classical} classical",
+                    ha="center", va="bottom", fontsize=7.5,
+                    color=COLORS["shnn"], fontweight="bold")
 
     fig.tight_layout()
     _save(fig, save_path)
