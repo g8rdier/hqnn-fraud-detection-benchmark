@@ -34,6 +34,7 @@ from src.evaluation.plots import (
     plot_hilbert_space,
     plot_parameter_breakdown,
     plot_pca_scree,
+    plot_phnn_architecture,
     plot_shnn_architecture,
     plot_smote_illustration,
 )
@@ -120,6 +121,9 @@ def main() -> None:
 
     # ── 4. SHNN architecture diagram ─────────────────────────────────────
     plot_shnn_architecture(out / "shnn_architecture.png")
+
+    # ── 4b. PHNN architecture diagram ────────────────────────────────────
+    plot_phnn_architecture(out / "phnn_architecture.svg")
 
     # ── 5. PCA scree plot ─────────────────────────────────────────────────
     # Apply RobustScaler + MinMaxScaler first (matching the actual pipeline),

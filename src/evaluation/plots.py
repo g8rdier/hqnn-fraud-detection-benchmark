@@ -636,6 +636,123 @@ def plot_shnn_architecture(save_path: Path) -> None:
     _save(fig, save_path)
 
 
+def plot_phnn_architecture(save_path: Path) -> None:
+    """Flow diagram of the PHNN parallel hybrid pipeline."""
+    fig, ax = plt.subplots(figsize=(15, 4.5))
+    ax.set_xlim(0, 15.5)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    box_w, box_h = 1.3, 0.36
+    y_q = 0.72
+    y_m = 0.50
+    y_c = 0.28
+    gray = "#DFE6E9"
+    purple = "#D8CCF5"
+    q_color = COLORS["shnn"]
+    arrow_color = "#636E72"
+
+    def draw_box(cx, cy, label, facecolor, edgecolor, bw=None):
+        bw = bw or box_w
+        fancy = plt.matplotlib.patches.FancyBboxPatch(
+            (cx - bw / 2, cy - box_h / 2), bw, box_h,
+            boxstyle="round,pad=0.04",
+            facecolor=facecolor, edgecolor=edgecolor, linewidth=1.8, zorder=3,
+        )
+        ax.add_patch(fancy)
+        ax.text(cx, cy, label, ha="center", va="center",
+                fontsize=8.5, fontweight="bold", zorder=4, color="#2D3436")
+
+    def harrow(x1, y, x2):
+        ax.annotate("", xy=(x2, y), xytext=(x1, y),
+                    arrowprops={"arrowstyle": "->", "color": arrow_color, "lw": 1.5},
+                    zorder=2)
+
+    def hline(x1, y, x2):
+        ax.plot([x1, x2], [y, y], color=arrow_color, lw=1.5, zorder=2)
+
+    def vline(x, y1, y2):
+        ax.plot([x, x], [y1, y2], color=arrow_color, lw=1.5, zorder=2)
+
+    # ── Input ─────────────────────────────────────────────────────────────
+    input_cx = 0.8
+    draw_box(input_cx, y_m, "Input\n(8 features)", gray, "black")
+
+    # ── T-junction split ──────────────────────────────────────────────────
+    split_x = 1.58
+    hline(input_cx + box_w / 2 + 0.03, y_m, split_x)
+    vline(split_x, y_c, y_q)
+
+    # ── Quantum branch ─────────────────────────────────────────────────────
+    q_blocks = [
+        (2.55,  "Linear 8→8\n(vqc_proj)",             gray,   "black",  box_w),
+        (4.25,  "PiSigmoid\n×π",                       gray,   "black",  box_w),
+        (6.25,  "VQC\n8 qubits · 2 layers\n48 params", purple, q_color,  1.6),
+        (8.15,  "<Z0>\nMeasurement",                   purple, q_color,  box_w),
+    ]
+    harrow(split_x, y_q, q_blocks[0][0] - q_blocks[0][4] / 2 - 0.03)
+    for i, (cx, label, fc, ec, bw) in enumerate(q_blocks):
+        draw_box(cx, y_q, label, fc, ec, bw)
+        if i > 0:
+            prev_cx, prev_bw = q_blocks[i - 1][0], q_blocks[i - 1][4]
+            harrow(prev_cx + prev_bw / 2 + 0.03, y_q, cx - bw / 2 - 0.03)
+
+    # ── Classical branch ───────────────────────────────────────────────────
+    c_blocks = [
+        (3.1,  "Linear 8→16\nReLU", gray, "black", box_w),
+        (5.1,  "Linear 16→8\nReLU", gray, "black", box_w),
+    ]
+    harrow(split_x, y_c, c_blocks[0][0] - box_w / 2 - 0.03)
+    for i, (cx, label, fc, ec, bw) in enumerate(c_blocks):
+        draw_box(cx, y_c, label, fc, ec, bw)
+        if i > 0:
+            prev_cx = c_blocks[i - 1][0]
+            harrow(prev_cx + box_w / 2 + 0.03, y_c, cx - bw / 2 - 0.03)
+
+    # ── Reverse-T merge ────────────────────────────────────────────────────
+    merge_x = 9.05
+    last_q_cx, last_q_bw = q_blocks[-1][0], q_blocks[-1][4]
+    last_c_cx = c_blocks[-1][0]
+    hline(last_q_cx + last_q_bw / 2 + 0.03, y_q, merge_x)
+    hline(last_c_cx + box_w / 2 + 0.03, y_c, merge_x)
+    vline(merge_x, y_c, y_q)
+
+    # ── Concat and head ────────────────────────────────────────────────────
+    concat_cx = 9.85
+    harrow(merge_x, y_m, concat_cx - box_w / 2 - 0.03)
+    draw_box(concat_cx, y_m, "Concat\n[8+1=9]", gray, "black")
+
+    head_blocks = [
+        (11.3,  "Linear 9→8\nReLU",    gray, "black"),
+        (12.85, "Linear 8→1",          gray, "black"),
+        (14.4,  "Sigmoid\n→ P(fraud)", gray, "black"),
+    ]
+    harrow(concat_cx + box_w / 2 + 0.03, y_m, head_blocks[0][0] - box_w / 2 - 0.03)
+    for i, (cx, label, fc, ec) in enumerate(head_blocks):
+        draw_box(cx, y_m, label, fc, ec)
+        if i > 0:
+            harrow(head_blocks[i - 1][0] + box_w / 2 + 0.03, y_m, cx - box_w / 2 - 0.03)
+
+    # ── Quantum module bracket ─────────────────────────────────────────────
+    vqc_cx, vqc_bw = q_blocks[2][0], q_blocks[2][4]
+    z0_cx = q_blocks[3][0]
+    q_start = vqc_cx - vqc_bw / 2 - 0.05
+    q_end = z0_cx + box_w / 2 + 0.05
+    bracket_y = y_q - box_h / 2 - 0.10
+    ax.annotate(
+        "", xy=(q_end, bracket_y), xytext=(q_start, bracket_y),
+        arrowprops={"arrowstyle": "<->", "color": COLORS["parallel"], "lw": 1.5},
+    )
+    ax.text((q_start + q_end) / 2, bracket_y - 0.07,
+            "Quantum module (PennyLane · lightning.qubit)",
+            ha="center", fontsize=8.5, color=COLORS["parallel"], style="italic")
+
+    ax.set_title("PHNN — Parallel Hybrid Neural Network Architecture",
+                 fontsize=13, fontweight="bold", pad=8)
+    fig.tight_layout()
+    _save(fig, save_path)
+
+
 def plot_pca_scree(X: np.ndarray, n_highlight: int, save_path: Path) -> None:
     """Scree plot of cumulative explained variance, vertical line at n_highlight."""
     from sklearn.decomposition import PCA
