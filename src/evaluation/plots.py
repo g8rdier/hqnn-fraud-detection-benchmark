@@ -582,7 +582,7 @@ def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
 def plot_shnn_architecture(save_path: Path) -> None:
     """Flow diagram of the full SHNN hybrid pipeline."""
     fig, ax = plt.subplots(figsize=(13, 3.5))
-    ax.set_xlim(0, 13)
+    ax.set_xlim(-0.4, 13)
     ax.set_ylim(0, 1)
     ax.axis("off")
 
