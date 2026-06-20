@@ -79,7 +79,8 @@ def plot_metric_comparison(results: list[AggregatedMetrics], save_path: Path) ->
         ax.set_title(title, fontweight="bold", pad=10)
         ax.set_ylabel(ylabel)
         ax.set_ylim(0, 1.1)
-        ax.tick_params(axis="x", labelsize=9)
+        ax.set_xticks(range(len(names)))
+        ax.set_xticklabels(names, rotation=45, ha="right", fontsize=9)
 
         for bar, val, std in zip(bars, means, stds):
             label_y = bar.get_height() + std + 0.025
@@ -133,7 +134,8 @@ def plot_efficiency_comparison(results: list[AggregatedMetrics], save_path: Path
         bars = ax.bar(names, efficiencies, color=colors, alpha=0.85, edgecolor="white")
         ax.set_title(title, fontweight="bold", pad=10)
         ax.set_ylabel(ylabel)
-        ax.tick_params(axis="x", labelsize=9)
+        ax.set_xticks(range(len(names)))
+        ax.set_xticklabels(names, rotation=45, ha="right", fontsize=9)
 
         for bar, val in zip(bars, efficiencies):
             ax.text(
@@ -165,7 +167,7 @@ def plot_fold_consistency(results: list[AggregatedMetrics], save_path: Path) -> 
         patch.set_alpha(0.8)
 
     ax.set_xticks(range(1, len(names) + 1))
-    ax.set_xticklabels(names, fontsize=9)
+    ax.set_xticklabels(names, rotation=45, ha="right", fontsize=9)
     ax.set_ylabel("MCC")
     ax.set_title("Fold-Level MCC Consistency (5-Fold CV)", fontweight="bold")
     ax.set_ylim(0, 1.0)
@@ -204,7 +206,7 @@ def plot_statistical_heatmap(stat_results: list[dict], save_path: Path) -> None:
         ax.set_title(f"Rank-Biserial r — {metric}", fontweight="bold", pad=10)
         ax.set_xlabel("Classical model")
         ax.set_ylabel("HQNN model")
-        ax.tick_params(axis="x", labelsize=9)
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=9)
         ax.tick_params(axis="y", labelsize=9, rotation=0)
 
     fig.suptitle(
@@ -516,7 +518,7 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
     # Floor must sit below the smallest total (SHNN=122) so that bar is visible.
     ax.set_ylim(bottom=min(v for v in totals if v > 0) * 0.3)
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=9)
+    ax.set_xticklabels(names, rotation=45, ha="right", fontsize=9)
     ax.set_ylabel("Total trainable parameters (log scale)")
     ax.set_title("Total Trainable Parameters per Model", fontweight="bold")
 
