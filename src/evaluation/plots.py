@@ -197,7 +197,7 @@ def plot_statistical_heatmap(stat_results: list[dict], save_path: Path) -> None:
             vmin=-1, vmax=1, center=0,
             linewidths=0.5, annot_kws={"size": 11},
         )
-        ax.set_title(f"Rank-Biserial r — {metric}", fontsize=13, fontweight="bold", pad=10)
+        ax.set_title(f"Rank-Biserial Correlation — {metric}", fontsize=13, fontweight="bold", pad=10)
         ax.set_xlabel("Classical model", fontsize=11)
         ax.set_ylabel("HQNN model", fontsize=11)
         ax.tick_params(axis="x", labelsize=10)
