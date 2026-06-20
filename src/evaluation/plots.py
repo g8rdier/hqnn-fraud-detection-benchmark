@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 plt.style.use("seaborn-v0_8-whitegrid")
 plt.rcParams.update({
     "font.family": "sans-serif",
-    "font.size": 10,
-    "axes.titlesize": 13,
-    "axes.labelsize": 11,
-    "xtick.labelsize": 10,
-    "ytick.labelsize": 10,
-    "legend.fontsize": 10,
+    "font.size": 9,
+    "axes.titlesize": 10,
+    "axes.labelsize": 9,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "legend.fontsize": 9,
 })
 
 COLORS = {
@@ -48,17 +48,20 @@ MODEL_LABELS = {
     "saint": "SAINT",
 }
 
+# Max text-column width in inches (DIN A4, 2 cm margins each side: 17 cm = 6.69 in).
+_W = 6.69
+
 
 def _save(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=300, bbox_inches="tight")
+    fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved: %s", path)
 
 
 def plot_metric_comparison(results: list[AggregatedMetrics], save_path: Path) -> None:
     """Bar chart of MCC and PR-AUC with std error bars. Labels sit above error bar caps."""
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(_W, 3.5))
     names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
     colors = [COLORS.get(r.model_name.lower(), "#636E72") for r in results]
 
@@ -72,26 +75,26 @@ def plot_metric_comparison(results: list[AggregatedMetrics], save_path: Path) ->
     ]:
         bars = ax.bar(names, means, yerr=stds, capsize=5,
                       color=colors, alpha=0.85, edgecolor="white", error_kw={"linewidth": 1.5})
-        ax.set_title(title, fontsize=13, fontweight="bold", pad=10)
-        ax.set_ylabel(ylabel, fontsize=11)
+        ax.set_title(title, fontweight="bold", pad=10)
+        ax.set_ylabel(ylabel)
         ax.set_ylim(0, 1.1)
-        ax.tick_params(axis="x", labelsize=10)
+        ax.tick_params(axis="x", labelsize=9)
 
         for bar, val, std in zip(bars, means, stds):
             label_y = bar.get_height() + std + 0.025
             ax.text(
                 bar.get_x() + bar.get_width() / 2, label_y,
-                f"{val:.3f}", ha="center", va="bottom", fontsize=9,
+                f"{val:.3f}", ha="center", va="bottom", fontsize=8,
             )
 
-    fig.suptitle("Model Comparison — 5-Fold CV", fontsize=15, fontweight="bold")
+    fig.suptitle("Model Comparison — 5-Fold CV", fontsize=10, fontweight="bold")
     fig.tight_layout()
     _save(fig, save_path)
 
 
 def plot_parameter_efficiency(results: list[AggregatedMetrics], save_path: Path) -> None:
     """Scatter: MCC vs total parameter count (log scale)."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(_W, 5.0))
 
     for r in results:
         total = r.param_count.get("total", 0)
@@ -102,11 +105,11 @@ def plot_parameter_efficiency(results: list[AggregatedMetrics], save_path: Path)
         ax.errorbar(total, r.mcc_mean, yerr=r.mcc_std,
                     fmt="none", ecolor=color, capsize=4, alpha=0.7)
         ax.annotate(label, (total, r.mcc_mean),
-                    textcoords="offset points", xytext=(8, 6), fontsize=10)
+                    textcoords="offset points", xytext=(8, 6), fontsize=9)
 
-    ax.set_xlabel("Trainable Parameters (log scale)", fontsize=12)
-    ax.set_ylabel("MCC (mean ± std)", fontsize=12)
-    ax.set_title("Parameter Efficiency: MCC vs Model Complexity", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Trainable Parameters (log scale)")
+    ax.set_ylabel("MCC (mean ± std)")
+    ax.set_title("Parameter Efficiency: MCC vs Model Complexity", fontweight="bold")
     ax.set_xscale("log")
     fig.tight_layout()
     _save(fig, save_path)
@@ -114,7 +117,7 @@ def plot_parameter_efficiency(results: list[AggregatedMetrics], save_path: Path)
 
 def plot_efficiency_comparison(results: list[AggregatedMetrics], save_path: Path) -> None:
     """Bar chart of MCC/kParam and PR-AUC/kParam — the central thesis metric."""
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(_W, 3.5))
     names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
     colors = [COLORS.get(r.model_name.lower(), "#636E72") for r in results]
 
@@ -127,26 +130,26 @@ def plot_efficiency_comparison(results: list[AggregatedMetrics], save_path: Path
          "PR-AUC / kParam", "PR-AUC per 1,000 parameters"),
     ]:
         bars = ax.bar(names, efficiencies, color=colors, alpha=0.85, edgecolor="white")
-        ax.set_title(title, fontsize=13, fontweight="bold", pad=10)
-        ax.set_ylabel(ylabel, fontsize=11)
-        ax.tick_params(axis="x", labelsize=10)
+        ax.set_title(title, fontweight="bold", pad=10)
+        ax.set_ylabel(ylabel)
+        ax.tick_params(axis="x", labelsize=9)
 
         for bar, val in zip(bars, efficiencies):
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + max(efficiencies) * 0.02,
-                f"{val:.3f}", ha="center", va="bottom", fontsize=9,
+                f"{val:.3f}", ha="center", va="bottom", fontsize=8,
             )
 
     fig.suptitle("Parameter Efficiency Advantage — MCC and PR-AUC per kParam",
-                 fontsize=14, fontweight="bold")
+                 fontsize=10, fontweight="bold")
     fig.tight_layout()
     _save(fig, save_path)
 
 
 def plot_fold_consistency(results: list[AggregatedMetrics], save_path: Path) -> None:
     """Box plots of per-fold MCC per model, showing variance across 5 folds."""
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(_W, 3.5))
 
     names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
     fold_data = [r.fold_mccs for r in results]
@@ -161,9 +164,9 @@ def plot_fold_consistency(results: list[AggregatedMetrics], save_path: Path) -> 
         patch.set_alpha(0.8)
 
     ax.set_xticks(range(1, len(names) + 1))
-    ax.set_xticklabels(names, fontsize=10)
-    ax.set_ylabel("MCC", fontsize=12)
-    ax.set_title("Fold-Level MCC Consistency (5-Fold CV)", fontsize=14, fontweight="bold")
+    ax.set_xticklabels(names, fontsize=9)
+    ax.set_ylabel("MCC")
+    ax.set_title("Fold-Level MCC Consistency (5-Fold CV)", fontweight="bold")
     ax.set_ylim(0, 1.0)
 
     fig.tight_layout()
@@ -176,7 +179,7 @@ def plot_statistical_heatmap(stat_results: list[dict], save_path: Path) -> None:
     classical = sorted({s["model_b"] for s in stat_results})
     metrics = ["MCC", "PR-AUC"]
 
-    fig, axes = plt.subplots(1, 2, figsize=(11, max(3, len(quantum) * 1.4 + 1.5)))
+    fig, axes = plt.subplots(1, 2, figsize=(_W, max(2.5, len(quantum) * 1.0 + 1.0)))
 
     for ax, metric in zip(axes, metrics):
         matrix = np.zeros((len(quantum), len(classical)))
@@ -195,18 +198,18 @@ def plot_statistical_heatmap(stat_results: list[dict], save_path: Path) -> None:
             xticklabels=c_labels, yticklabels=q_labels,
             annot=True, fmt=".2f", cmap="RdYlGn",
             vmin=-1, vmax=1, center=0,
-            linewidths=0.5, annot_kws={"size": 11},
+            linewidths=0.5, annot_kws={"size": 9},
         )
-        ax.set_title(f"Rank-Biserial r — {metric}", fontsize=13, fontweight="bold", pad=10)
-        ax.set_xlabel("Classical model", fontsize=11)
-        ax.set_ylabel("HQNN model", fontsize=11)
-        ax.tick_params(axis="x", labelsize=10)
-        ax.tick_params(axis="y", labelsize=10, rotation=0)
+        ax.set_title(f"Rank-Biserial r — {metric}", fontweight="bold", pad=10)
+        ax.set_xlabel("Classical model")
+        ax.set_ylabel("HQNN model")
+        ax.tick_params(axis="x", labelsize=9)
+        ax.tick_params(axis="y", labelsize=9, rotation=0)
 
     fig.suptitle(
         "Wilcoxon Signed-Rank Effect Size (r > 0: HQNN wins, r < 0: classical wins)\n"
         "n=5 folds, min p=0.0625",
-        fontsize=12, fontweight="bold",
+        fontsize=9, fontweight="bold",
     )
     fig.tight_layout()
     _save(fig, save_path)
@@ -214,7 +217,7 @@ def plot_statistical_heatmap(stat_results: list[dict], save_path: Path) -> None:
 
 def plot_ablation_vqc(shnn_mcc: float, shnn_std: float, save_path: Path) -> None:
     """Bar: SHNN full model vs VQC replaced by zeros (structural ablation)."""
-    fig, ax = plt.subplots(figsize=(6, 5))
+    fig, ax = plt.subplots(figsize=(_W / 2, 3.5))
 
     labels = ["SHNN (full)", "SHNN (VQC → zeros)"]
     values = [shnn_mcc, 0.0]
@@ -224,15 +227,15 @@ def plot_ablation_vqc(shnn_mcc: float, shnn_std: float, save_path: Path) -> None
     bars = ax.bar(labels, values, yerr=errors, capsize=6,
                   color=colors, alpha=0.85, edgecolor="white",
                   error_kw={"linewidth": 1.5})
-    ax.set_ylabel("MCC", fontsize=12)
+    ax.set_ylabel("MCC")
     ax.set_ylim(0, 1.0)
     ax.set_title("Quantum Contribution to SHNN (VQC Ablation)",
-                 fontsize=13, fontweight="bold", pad=10)
+                 fontweight="bold", pad=10)
 
     for bar, val, err in zip(bars, values, errors):
         label_y = bar.get_height() + err + 0.025
         ax.text(bar.get_x() + bar.get_width() / 2, label_y,
-                f"{val:.3f}", ha="center", va="bottom", fontsize=10)
+                f"{val:.3f}", ha="center", va="bottom", fontsize=9)
 
     ax.axhline(0, color="black", linewidth=0.8, linestyle="--", alpha=0.4)
     fig.tight_layout()
@@ -241,7 +244,7 @@ def plot_ablation_vqc(shnn_mcc: float, shnn_std: float, save_path: Path) -> None
 
 def plot_ablation_noise(noise_data: list[dict], save_path: Path) -> None:
     """Line plot: MCC vs depolarizing noise probability."""
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(_W, 4.0))
 
     ps = [d["depolarizing_p"] for d in noise_data]
     mccs_tuned = [d["mcc_tuned_threshold"] for d in noise_data]
@@ -252,11 +255,10 @@ def plot_ablation_noise(noise_data: list[dict], save_path: Path) -> None:
     ax.plot(ps, mccs_fixed, marker="s", linewidth=2, color=COLORS["parallel"],
             linestyle="--", label="Fixed threshold (0.94)", markersize=7)
 
-    ax.set_xlabel("Depolarizing noise probability (p)", fontsize=12)
-    ax.set_ylabel("MCC", fontsize=12)
-    ax.set_title("SHNN MCC vs. Depolarizing Noise",
-                 fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10)
+    ax.set_xlabel("Depolarizing noise probability (p)")
+    ax.set_ylabel("MCC")
+    ax.set_title("SHNN MCC vs. Depolarizing Noise", fontweight="bold")
+    ax.legend()
     ax.set_ylim(0, 1.0)
     ax.set_xlim(left=-0.001)
 
@@ -276,7 +278,7 @@ def plot_aggregated_confusion_matrices(
     """
     models = list(fold_data.keys())
     n = len(models)
-    fig, axes = plt.subplots(1, n, figsize=(4.5 * n, 4))
+    fig, axes = plt.subplots(1, n, figsize=(_W, 4.0))
     if n == 1:
         axes = [axes]
 
@@ -300,15 +302,15 @@ def plot_aggregated_confusion_matrices(
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         ax.set_title(
             f"{label}\nRecall={recall:.2f}  Precision={precision:.2f}",
-            fontsize=11, fontweight="bold", pad=8,
+            fontweight="bold", pad=8,
         )
-        ax.set_xlabel("Predicted", fontsize=10)
-        ax.set_ylabel("Actual", fontsize=10)
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
 
     fig.suptitle(
         "Mean Confusion Matrices — Held-Out Test Set\n"
         "n = 56,962; 98 frauds",
-        fontsize=13, fontweight="bold",
+        fontsize=10, fontweight="bold",
     )
     fig.tight_layout()
     _save(fig, save_path)
@@ -316,7 +318,7 @@ def plot_aggregated_confusion_matrices(
 
 def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None:
     """2D scatter: MCC vs PR-AUC with std error bars — shows both primary metrics at once."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(_W, 5.0))
 
     for r in results:
         color = COLORS.get(r.model_name, "#636E72")
@@ -328,12 +330,11 @@ def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None
             capsize=4, elinewidth=1.2, alpha=0.85,
         )
         ax.annotate(label, (r.pr_auc_mean, r.mcc_mean),
-                    textcoords="offset points", xytext=(8, 5), fontsize=10)
+                    textcoords="offset points", xytext=(8, 5), fontsize=9)
 
-    ax.set_xlabel("PR-AUC (mean ± std)", fontsize=12)
-    ax.set_ylabel("MCC (mean ± std)", fontsize=12)
-    ax.set_title("Performance Space: MCC vs PR-AUC per Model",
-                 fontsize=14, fontweight="bold")
+    ax.set_xlabel("PR-AUC (mean ± std)")
+    ax.set_ylabel("MCC (mean ± std)")
+    ax.set_title("Performance Space: MCC vs PR-AUC per Model", fontweight="bold")
     ax.set_xlim(0.5, 0.85)
     ax.set_ylim(0.4, 0.8)
 
@@ -347,7 +348,7 @@ def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None
 
 def plot_efficiency_frontier(results: list[AggregatedMetrics], save_path: Path) -> None:
     """MCC vs log(params) with Pareto efficiency frontier highlighted."""
-    fig, ax = plt.subplots(figsize=(9, 6))
+    fig, ax = plt.subplots(figsize=(_W, 5.0))
 
     # Compute Pareto frontier: non-dominated points (max MCC, min params)
     sorted_by_params = sorted(results, key=lambda r: r.param_count["total"])
@@ -374,7 +375,7 @@ def plot_efficiency_frontier(results: list[AggregatedMetrics], save_path: Path) 
         ax.errorbar(total, r.mcc_mean, yerr=r.mcc_std,
                     fmt="none", ecolor=color, capsize=4, alpha=0.6)
         ax.annotate(label, (total, r.mcc_mean),
-                    textcoords="offset points", xytext=(8, 6), fontsize=10)
+                    textcoords="offset points", xytext=(8, 6), fontsize=9)
 
     # Draw frontier as step line
     fx = [r.param_count["total"] for r in frontier]
@@ -383,19 +384,18 @@ def plot_efficiency_frontier(results: list[AggregatedMetrics], save_path: Path) 
             where="post", color="#2D3436", linewidth=1.5,
             linestyle="--", alpha=0.6, label="Efficiency frontier")
 
-    ax.set_xlabel("Trainable Parameters (log scale)", fontsize=12)
-    ax.set_ylabel("MCC (mean ± std)", fontsize=12)
-    ax.set_title("Efficiency Frontier: MCC vs Model Complexity",
-                 fontsize=14, fontweight="bold")
+    ax.set_xlabel("Trainable Parameters (log scale)")
+    ax.set_ylabel("MCC (mean ± std)")
+    ax.set_title("Efficiency Frontier: MCC vs Model Complexity", fontweight="bold")
     ax.set_xscale("log")
-    ax.legend(fontsize=10)
+    ax.legend()
     fig.tight_layout()
     _save(fig, save_path)
 
 
 def plot_fold_trajectories(results: list[AggregatedMetrics], save_path: Path) -> None:
     """Line plot of fold-by-fold MCC for each model — shows directional trends."""
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(_W, 4.0))
 
     folds = list(range(5))
     for r in results:
@@ -404,11 +404,11 @@ def plot_fold_trajectories(results: list[AggregatedMetrics], save_path: Path) ->
         ax.plot(folds, r.fold_mccs, marker="o", linewidth=1.8,
                 color=color, label=label, markersize=6, alpha=0.85)
 
-    ax.set_xlabel("Fold", fontsize=12)
-    ax.set_ylabel("MCC", fontsize=12)
+    ax.set_xlabel("Fold")
+    ax.set_ylabel("MCC")
     ax.set_xticks(folds)
     ax.set_xticklabels([f"Fold {i}" for i in folds])
-    ax.set_title("Fold-by-Fold MCC Trajectories", fontsize=14, fontweight="bold")
+    ax.set_title("Fold-by-Fold MCC Trajectories", fontweight="bold")
     ax.legend(loc="lower right", fontsize=9, ncol=2)
     ax.set_ylim(0.3, 0.8)
     fig.tight_layout()
@@ -432,29 +432,29 @@ def plot_vqc_circuit(n_qubits: int, n_layers: int, save_path: Path) -> None:
     weights = torch.zeros(n_layers, n_qubits, 3)
 
     fig, _ = qml.draw_mpl(circuit, level="device")(inputs, weights)
-    fig.set_size_inches(16, 6)
+    fig.set_size_inches(_W, 3.0)
     fig.suptitle(
         f"VQC Circuit: AngleEmbedding + StronglyEntanglingLayers "
         f"({n_qubits} qubits, {n_layers} layers, {n_layers * n_qubits * 3} parameters)",
-        fontsize=12, fontweight="bold", y=1.02,
+        fontsize=9, fontweight="bold", y=1.02,
     )
     _save(fig, save_path)
 
 
 def plot_class_imbalance(n_legit: int, n_fraud: int, save_path: Path) -> None:
     """Side-by-side bar + inset pie showing the extreme class imbalance."""
-    fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(_W, 4.0))
 
     # Left: absolute counts (log scale so fraud is visible)
     ax = axes[0]
     bars = ax.bar(["Legitimate", "Fraud"], [n_legit, n_fraud],
                   color=["#636E72", COLORS["shnn"]], alpha=0.85, edgecolor="white")
     ax.set_yscale("log")
-    ax.set_ylabel("Number of transactions (log scale)", fontsize=11)
-    ax.set_title("Absolute Class Counts", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Number of transactions (log scale)")
+    ax.set_title("Absolute Class Counts", fontweight="bold")
     for bar, val in zip(bars, [n_legit, n_fraud]):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() * 1.3,
-                f"{val:,}", ha="center", va="bottom", fontsize=11)
+                f"{val:,}", ha="center", va="bottom", fontsize=9)
 
     # Right: pie with exploded fraud slice
     ax2 = axes[1]
@@ -468,16 +468,16 @@ def plot_class_imbalance(n_legit: int, n_fraud: int, save_path: Path) -> None:
         explode=(0, 0.12),
         autopct="%1.2f%%",
         startangle=90,
-        textprops={"fontsize": 10},
+        textprops={"fontsize": 9},
     )
     for at in autotexts:
-        at.set_fontsize(9)
-    ax2.set_title("Class Distribution", fontsize=12, fontweight="bold")
+        at.set_fontsize(8)
+    ax2.set_title("Class Distribution", fontweight="bold")
 
     fig.suptitle(
         f"Credit Card Fraud Dataset — Extreme Class Imbalance "
         f"(n = {total:,})",
-        fontsize=13, fontweight="bold",
+        fontsize=10, fontweight="bold",
     )
     fig.tight_layout()
     _save(fig, save_path)
@@ -497,7 +497,7 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
     ``vqc_proj`` Linear lives in the quantum branch but is classical, so it is
     not counted as quantum despite ``param_count["quantum"]`` lumping it in.
     """
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(_W, 3.5))
 
     names = [MODEL_LABELS.get(r.model_name, r.model_name) for r in results]
     totals = [
@@ -515,10 +515,9 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
     # Floor must sit below the smallest total (SHNN=122) so that bar is visible.
     ax.set_ylim(bottom=min(v for v in totals if v > 0) * 0.3)
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=10)
-    ax.set_ylabel("Total trainable parameters (log scale)", fontsize=12)
-    ax.set_title("Total Trainable Parameters per Model",
-                 fontsize=13, fontweight="bold")
+    ax.set_xticklabels(names, fontsize=9)
+    ax.set_ylabel("Total trainable parameters (log scale)")
+    ax.set_title("Total Trainable Parameters per Model", fontweight="bold")
 
     # Verified true-quantum split for the two hybrid models: quantum = trainable
     # VQC angles (48); classical = total - 48. See function docstring above.
@@ -531,7 +530,7 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
             quantum = VQC_ANGLE_PARAMS
             classical = total - quantum
             ax.text(xi, total * 2.3, f"{quantum} quantum / {classical} classical",
-                    ha="center", va="bottom", fontsize=7.5,
+                    ha="center", va="bottom", fontsize=7,
                     color=COLORS["shnn"], fontweight="bold")
 
     fig.tight_layout()
@@ -540,7 +539,7 @@ def plot_parameter_breakdown(results: list[AggregatedMetrics], save_path: Path) 
 
 def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
     """2^n exponential growth curve with a marker at the thesis qubit count."""
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(_W, 4.0))
 
     n_range = np.arange(1, 21)
     dims = 2.0 ** n_range
@@ -556,7 +555,7 @@ def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
         f"  This thesis\n  n={n_qubits_highlight} qubits\n  2^{n_qubits_highlight} = {int(highlight_dim)} dims",
         (n_qubits_highlight, highlight_dim),
         textcoords="offset points", xytext=(10, -30),
-        fontsize=10, color="#2D3436",
+        fontsize=9, color="#2D3436",
         arrowprops={"arrowstyle": "->", "color": "#2D3436", "lw": 1.2},
     )
 
@@ -567,10 +566,9 @@ def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
                        linestyle=":", alpha=0.5)
             ax.text(20.2, 2 ** bits, label, va="center", fontsize=8, color="gray")
 
-    ax.set_xlabel("Number of qubits (n)", fontsize=12)
-    ax.set_ylabel("Hilbert space dimension (2ⁿ)", fontsize=12)
-    ax.set_title("Exponential Growth of Quantum State Space",
-                 fontsize=14, fontweight="bold")
+    ax.set_xlabel("Number of qubits (n)")
+    ax.set_ylabel("Hilbert space dimension (2ⁿ)")
+    ax.set_title("Exponential Growth of Quantum State Space", fontweight="bold")
     ax.set_yscale("log", base=2)
     ax.set_xlim(1, 21)
     ax.xaxis.set_major_locator(plt.MultipleLocator(2))
@@ -581,7 +579,7 @@ def plot_hilbert_space(n_qubits_highlight: int, save_path: Path) -> None:
 
 def plot_shnn_architecture(save_path: Path) -> None:
     """Flow diagram of the full SHNN hybrid pipeline."""
-    fig, ax = plt.subplots(figsize=(13, 3.5))
+    fig, ax = plt.subplots(figsize=(_W, 2.5))
     ax.set_xlim(0, 13)
     ax.set_ylim(0, 1)
     ax.axis("off")
@@ -607,7 +605,7 @@ def plot_shnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=8.5, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=8, fontweight="bold", zorder=4, color="#2D3436")
 
         if i < len(blocks) - 1:
             next_cx = blocks[i + 1][0]
@@ -628,10 +626,10 @@ def plot_shnn_architecture(save_path: Path) -> None:
     )
     ax.text((q_start + q_end) / 2, bracket_y - 0.08,
             "Quantum module (PennyLane · lightning.qubit)",
-            ha="center", fontsize=8.5, color=COLORS["shnn"], style="italic")
+            ha="center", fontsize=8, color=COLORS["shnn"], style="italic")
 
     ax.set_title("SHNN — Sequential Hybrid Neural Network Architecture",
-                 fontsize=13, fontweight="bold", pad=8)
+                 fontweight="bold", pad=8)
     fig.tight_layout()
     _save(fig, save_path)
 
@@ -643,7 +641,7 @@ def plot_pca_scree(X: np.ndarray, n_highlight: int, save_path: Path) -> None:
     pca = PCA().fit(X)
     cumvar = np.cumsum(pca.explained_variance_ratio_) * 100
 
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(_W, 4.0))
 
     components = np.arange(1, len(cumvar) + 1)
     ax.plot(components, cumvar, marker="o", linewidth=2,
@@ -660,14 +658,13 @@ def plot_pca_scree(X: np.ndarray, n_highlight: int, save_path: Path) -> None:
         f"  {n_highlight} components\n  {cumvar[n_highlight-1]:.1f}% variance",
         (n_highlight, cumvar[n_highlight - 1]),
         textcoords="offset points", xytext=(10, -25),
-        fontsize=10,
+        fontsize=9,
         arrowprops={"arrowstyle": "->", "color": "#2D3436", "lw": 1.2},
     )
 
-    ax.set_xlabel("Number of principal components", fontsize=12)
-    ax.set_ylabel("Cumulative explained variance (%)", fontsize=12)
-    ax.set_title("PCA Scree Plot — Feature Dimensionality Reduction",
-                 fontsize=13, fontweight="bold")
+    ax.set_xlabel("Number of principal components")
+    ax.set_ylabel("Cumulative explained variance (%)")
+    ax.set_title("PCA Scree Plot — Feature Dimensionality Reduction", fontweight="bold")
     ax.set_xlim(1, len(cumvar))
     ax.set_ylim(0, 102)
     fig.tight_layout()
@@ -682,7 +679,7 @@ def plot_smote_illustration(
     """2D PCA projection of fraud samples before/after SMOTE."""
     from sklearn.decomposition import PCA
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(_W, 3.5))
 
     for ax, X, y, title in [
         (axes[0], X_before, y_before, "Before SMOTE"),
@@ -710,14 +707,12 @@ def plot_smote_illustration(
                    c=COLORS["shnn"], s=20, alpha=0.7,
                    label=f"Fraud (n={fraud_mask.sum():,})", zorder=3)
 
-        ax.set_title(title, fontsize=12, fontweight="bold")
-        ax.set_xlabel("PC 1", fontsize=10)
-        ax.set_ylabel("PC 2", fontsize=10)
+        ax.set_title(title, fontweight="bold")
+        ax.set_xlabel("PC 1")
+        ax.set_ylabel("PC 2")
         ax.legend(fontsize=9)
 
     fig.suptitle("SMOTE: Synthetic Minority Oversampling in PCA Space (fold 0 train set)",
-                 fontsize=12, fontweight="bold")
+                 fontsize=9, fontweight="bold")
     fig.tight_layout()
     _save(fig, save_path)
-
-
