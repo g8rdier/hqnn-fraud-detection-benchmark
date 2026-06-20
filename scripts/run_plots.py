@@ -121,22 +121,22 @@ def main() -> None:
     shnn = next(r for r in all_results if r.model_name == "shnn")
 
     # ── 1. Metric comparison ───────────────────────────────────────────────
-    plot_metric_comparison(all_results, out / "metric_comparison.png")
+    plot_metric_comparison(all_results, out / "metric_comparison.svg")
 
     # ── 2. Parameter efficiency scatter ───────────────────────────────────
-    plot_parameter_efficiency(all_results, out / "parameter_efficiency.png")
+    plot_parameter_efficiency(all_results, out / "parameter_efficiency.svg")
 
     # ── 3. Efficiency bar (MCC/kParam + PR-AUC/kParam) ────────────────────
-    plot_efficiency_comparison(all_results, out / "efficiency_comparison.png")
+    plot_efficiency_comparison(all_results, out / "efficiency_comparison.svg")
 
     # ── 4. Fold consistency box plots ─────────────────────────────────────
-    plot_fold_consistency(all_results, out / "fold_consistency.png")
+    plot_fold_consistency(all_results, out / "fold_consistency.svg")
 
     # ── 5. Statistical heatmap ────────────────────────────────────────────
     stat_files = sorted(args.metrics_dir.glob("statistics_*.json"))
     if stat_files:
         stat_results = json.loads(stat_files[-1].read_text())
-        plot_statistical_heatmap(stat_results, out / "statistical_heatmap.png")
+        plot_statistical_heatmap(stat_results, out / "statistical_heatmap.svg")
     else:
         logger.warning("No statistics_*.json found — skipping heatmap")
 
@@ -144,14 +144,14 @@ def main() -> None:
     plot_ablation_vqc(
         shnn_mcc=shnn.mcc_mean,
         shnn_std=shnn.mcc_std,
-        save_path=out / "ablation_vqc.png",
+        save_path=out / "ablation_vqc.svg",
     )
 
     # ── 7. Noise ablation curve ───────────────────────────────────────────
     noise_path = Path("results/ablation_noise.json")
     if noise_path.exists():
         noise_data = json.loads(noise_path.read_text())
-        plot_ablation_noise(noise_data, out / "ablation_noise.png")
+        plot_ablation_noise(noise_data, out / "ablation_noise.svg")
     else:
         logger.warning("results/ablation_noise.json not found — skipping noise plot")
 
@@ -163,16 +163,16 @@ def main() -> None:
         if "confusion_matrix" in d:
             fold_cms.setdefault(model, []).append(d["confusion_matrix"])
     if fold_cms:
-        plot_aggregated_confusion_matrices(fold_cms, out / "confusion_matrices.png")
+        plot_aggregated_confusion_matrices(fold_cms, out / "confusion_matrices.svg")
 
     # ── 9. MCC vs PR-AUC scatter ──────────────────────────────────────────
-    plot_mcc_vs_prauc(all_results, out / "mcc_vs_prauc.png")
+    plot_mcc_vs_prauc(all_results, out / "mcc_vs_prauc.svg")
 
     # ── 10. Efficiency frontier ───────────────────────────────────────────
-    plot_efficiency_frontier(all_results, out / "efficiency_frontier.png")
+    plot_efficiency_frontier(all_results, out / "efficiency_frontier.svg")
 
     # ── 11. Fold trajectories ─────────────────────────────────────────────
-    plot_fold_trajectories(all_results, out / "fold_trajectories.png")
+    plot_fold_trajectories(all_results, out / "fold_trajectories.svg")
 
     # ── 12. VQC circuit diagram ───────────────────────────────────────────
     from src.config import load_config
@@ -180,7 +180,7 @@ def main() -> None:
     plot_vqc_circuit(
         n_qubits=cfg.shnn.vqc.n_qubits,
         n_layers=cfg.shnn.vqc.n_layers,
-        save_path=out / "vqc_circuit.png",
+        save_path=out / "vqc_circuit.svg",
     )
 
     console.print(f"\n[bold green]All figures saved to {out}/[/]")

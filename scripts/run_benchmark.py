@@ -266,8 +266,8 @@ def main() -> None:
         from src.evaluation.plots import plot_metric_comparison, plot_parameter_efficiency
 
         figures_dir = Path(cfg.paths.figures_dir)
-        plot_metric_comparison(all_aggregated, figures_dir / "metric_comparison.png")
-        plot_parameter_efficiency(all_aggregated, figures_dir / "parameter_efficiency.png")
+        plot_metric_comparison(all_aggregated, figures_dir / "metric_comparison.svg")
+        plot_parameter_efficiency(all_aggregated, figures_dir / "parameter_efficiency.svg")
 
     console.print(f"\n[bold green]Benchmark complete. Results → {cfg.paths.results_dir}/[/]")
 
