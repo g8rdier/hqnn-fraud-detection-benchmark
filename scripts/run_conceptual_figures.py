@@ -109,17 +109,17 @@ def main() -> None:
     n_fraud = int(y_np.sum())
     n_legit = len(y_np) - n_fraud
     logger.info("Dataset: %d legit, %d fraud", n_legit, n_fraud)
-    plot_class_imbalance(n_legit, n_fraud, out / "class_imbalance.pdf")
+    plot_class_imbalance(n_legit, n_fraud, out / "class_imbalance.svg")
 
     # ── 2. Parameter breakdown ────────────────────────────────────────────
     all_results = _load_all_results(args.folds_dir, args.metrics_dir)
-    plot_parameter_breakdown(all_results, out / "parameter_breakdown.pdf")
+    plot_parameter_breakdown(all_results, out / "parameter_breakdown.svg")
 
     # ── 3. Hilbert space growth ───────────────────────────────────────────
-    plot_hilbert_space(cfg.shnn.vqc.n_qubits, out / "hilbert_space.pdf")
+    plot_hilbert_space(cfg.shnn.vqc.n_qubits, out / "hilbert_space.svg")
 
     # ── 4. SHNN architecture diagram ─────────────────────────────────────
-    plot_shnn_architecture(out / "shnn_architecture.pdf")
+    plot_shnn_architecture(out / "shnn_architecture.svg")
 
     # ── 5. PCA scree plot ─────────────────────────────────────────────────
     # Apply RobustScaler + MinMaxScaler first (matching the actual pipeline),
@@ -140,7 +140,7 @@ def main() -> None:
     X_scaled = RobustScaler().fit_transform(X_train_raw)
     X_scaled = MinMaxScaler().fit_transform(X_scaled)
     plot_pca_scree(X_scaled, n_highlight=cfg.shnn.vqc.n_qubits,
-                   save_path=out / "pca_scree.pdf")
+                   save_path=out / "pca_scree.svg")
 
     # ── 6. SMOTE illustration (fold 0 train set) ──────────────────────────
     # Before SMOTE: preprocessed (RobustScaler + MinMaxScaler + PCA) but no SMOTE
@@ -161,7 +161,7 @@ def main() -> None:
     plot_smote_illustration(
         X_pre_smote, y_pre_smote,
         X_post_smote, y_post_smote,
-        save_path=out / "smote_illustration.pdf",
+        save_path=out / "smote_illustration.svg",
     )
 
     console.print(f"\n[bold green]All conceptual figures saved to {out}/[/]")

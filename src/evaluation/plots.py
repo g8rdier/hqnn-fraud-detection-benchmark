@@ -26,6 +26,7 @@ plt.rcParams.update({
     "xtick.labelsize": 9,
     "ytick.labelsize": 9,
     "legend.fontsize": 9,
+    "svg.fonttype": "none",
 })
 
 COLORS = {
@@ -54,7 +55,7 @@ _W = 6.69
 
 def _save(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
     logger.info("Saved: %s", path)
 

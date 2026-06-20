@@ -64,25 +64,25 @@ def _assert_file(path) -> None:
 
 
 def test_plot_metric_comparison(two_models, tmp_path):
-    out = tmp_path / "metric_comparison.pdf"
+    out = tmp_path / "metric_comparison.svg"
     plot_metric_comparison(two_models, out)
     _assert_file(out)
 
 
 def test_plot_parameter_efficiency(two_models, tmp_path):
-    out = tmp_path / "parameter_efficiency.pdf"
+    out = tmp_path / "parameter_efficiency.svg"
     plot_parameter_efficiency(two_models, out)
     _assert_file(out)
 
 
 def test_plot_efficiency_comparison(two_models, tmp_path):
-    out = tmp_path / "efficiency_comparison.pdf"
+    out = tmp_path / "efficiency_comparison.svg"
     plot_efficiency_comparison(two_models, out)
     _assert_file(out)
 
 
 def test_plot_fold_consistency(two_models, tmp_path):
-    out = tmp_path / "fold_consistency.pdf"
+    out = tmp_path / "fold_consistency.svg"
     plot_fold_consistency(two_models, out)
     _assert_file(out)
 
@@ -92,13 +92,13 @@ def test_plot_statistical_heatmap(tmp_path):
         {"model_a": "shnn", "model_b": "snn", "metric": "MCC", "rank_biserial": 0.4},
         {"model_a": "shnn", "model_b": "snn", "metric": "PR-AUC", "rank_biserial": -0.2},
     ]
-    out = tmp_path / "statistical_heatmap.pdf"
+    out = tmp_path / "statistical_heatmap.svg"
     plot_statistical_heatmap(stat_results, out)
     _assert_file(out)
 
 
 def test_plot_ablation_vqc(tmp_path):
-    out = tmp_path / "ablation_vqc.pdf"
+    out = tmp_path / "ablation_vqc.svg"
     plot_ablation_vqc(shnn_mcc=0.58, shnn_std=0.04, save_path=out)
     _assert_file(out)
 
@@ -109,7 +109,7 @@ def test_plot_ablation_noise(tmp_path):
         {"depolarizing_p": 0.01, "mcc_tuned_threshold": 0.52, "mcc_fixed_threshold": 0.50},
         {"depolarizing_p": 0.05, "mcc_tuned_threshold": 0.30, "mcc_fixed_threshold": 0.28},
     ]
-    out = tmp_path / "ablation_noise.pdf"
+    out = tmp_path / "ablation_noise.svg"
     plot_ablation_noise(noise_data, out)
     _assert_file(out)
 
@@ -118,55 +118,55 @@ def test_plot_aggregated_confusion_matrices(tmp_path):
     fold_cms = {
         "shnn": [[[56000, 20], [10, 80]], [[55000, 25], [8, 82]]],
     }
-    out = tmp_path / "confusion_matrices.pdf"
+    out = tmp_path / "confusion_matrices.svg"
     plot_aggregated_confusion_matrices(fold_cms, out)
     _assert_file(out)
 
 
 def test_plot_mcc_vs_prauc(two_models, tmp_path):
-    out = tmp_path / "mcc_vs_prauc.pdf"
+    out = tmp_path / "mcc_vs_prauc.svg"
     plot_mcc_vs_prauc(two_models, out)
     _assert_file(out)
 
 
 def test_plot_efficiency_frontier(two_models, tmp_path):
-    out = tmp_path / "efficiency_frontier.pdf"
+    out = tmp_path / "efficiency_frontier.svg"
     plot_efficiency_frontier(two_models, out)
     _assert_file(out)
 
 
 def test_plot_fold_trajectories(two_models, tmp_path):
-    out = tmp_path / "fold_trajectories.pdf"
+    out = tmp_path / "fold_trajectories.svg"
     plot_fold_trajectories(two_models, out)
     _assert_file(out)
 
 
 def test_plot_vqc_circuit(tmp_path):
-    out = tmp_path / "vqc_circuit.pdf"
+    out = tmp_path / "vqc_circuit.svg"
     plot_vqc_circuit(n_qubits=4, n_layers=2, save_path=out)
     _assert_file(out)
 
 
 def test_plot_class_imbalance(tmp_path):
-    out = tmp_path / "class_imbalance.pdf"
+    out = tmp_path / "class_imbalance.svg"
     plot_class_imbalance(n_legit=284315, n_fraud=492, save_path=out)
     _assert_file(out)
 
 
 def test_plot_parameter_breakdown(two_models, tmp_path):
-    out = tmp_path / "parameter_breakdown.pdf"
+    out = tmp_path / "parameter_breakdown.svg"
     plot_parameter_breakdown(two_models, out)
     _assert_file(out)
 
 
 def test_plot_hilbert_space(tmp_path):
-    out = tmp_path / "hilbert_space.pdf"
+    out = tmp_path / "hilbert_space.svg"
     plot_hilbert_space(n_qubits_highlight=8, save_path=out)
     _assert_file(out)
 
 
 def test_plot_shnn_architecture(tmp_path):
-    out = tmp_path / "shnn_architecture.pdf"
+    out = tmp_path / "shnn_architecture.svg"
     plot_shnn_architecture(save_path=out)
     _assert_file(out)
 
@@ -174,7 +174,7 @@ def test_plot_shnn_architecture(tmp_path):
 def test_plot_pca_scree(tmp_path):
     rng = np.random.default_rng(42)
     X = rng.standard_normal((200, 20))
-    out = tmp_path / "pca_scree.pdf"
+    out = tmp_path / "pca_scree.svg"
     plot_pca_scree(X, n_highlight=8, save_path=out)
     _assert_file(out)
 
@@ -185,6 +185,6 @@ def test_plot_smote_illustration(tmp_path):
     y_pre = np.array([0] * 290 + [1] * 10)
     X_post = rng.standard_normal((580, 8))
     y_post = np.array([0] * 290 + [1] * 290)
-    out = tmp_path / "smote_illustration.pdf"
+    out = tmp_path / "smote_illustration.svg"
     plot_smote_illustration(X_pre, y_pre, X_post, y_post, save_path=out)
     _assert_file(out)
