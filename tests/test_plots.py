@@ -25,6 +25,7 @@ from src.evaluation.plots import (
     plot_parameter_breakdown,
     plot_parameter_efficiency,
     plot_pca_scree,
+    plot_phnn_architecture,
     plot_shnn_architecture,
     plot_smote_illustration,
     plot_statistical_heatmap,
@@ -168,6 +169,12 @@ def test_plot_hilbert_space(tmp_path):
 def test_plot_shnn_architecture(tmp_path):
     out = tmp_path / "shnn_architecture.png"
     plot_shnn_architecture(save_path=out)
+    _assert_file(out)
+
+
+def test_plot_phnn_architecture(tmp_path):
+    out = tmp_path / "phnn_architecture.svg"
+    plot_phnn_architecture(save_path=out)
     _assert_file(out)
 
 
