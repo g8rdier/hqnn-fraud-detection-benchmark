@@ -661,7 +661,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=11, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=13, fontweight="bold", zorder=4, color="#2D3436")
 
     def harrow(x1, y, x2):
         ax.annotate("", xy=(x2, y), xytext=(x1, y),
