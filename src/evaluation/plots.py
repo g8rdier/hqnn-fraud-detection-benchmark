@@ -607,7 +607,7 @@ def plot_shnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=8.5, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=11, fontweight="bold", zorder=4, color="#2D3436")
 
         if i < len(blocks) - 1:
             next_cx = blocks[i + 1][0]
@@ -626,9 +626,9 @@ def plot_shnn_architecture(save_path: Path) -> None:
         "", xy=(q_end, bracket_y), xytext=(q_start, bracket_y),
         arrowprops={"arrowstyle": "<->", "color": COLORS["shnn"], "lw": 1.5},
     )
-    ax.text((q_start + q_end) / 2, bracket_y - 0.08,
-            "Quantum module (PennyLane · lightning.qubit)",
-            ha="center", fontsize=8.5, color=COLORS["shnn"], style="italic")
+    ax.text((q_start + q_end) / 2, bracket_y - 0.02,
+            "Quantum module\n(PennyLane · lightning.qubit)",
+            ha="center", va="top", fontsize=9.5, color=COLORS["shnn"], style="italic")
 
     ax.set_title("SHNN — Sequential Hybrid Neural Network Architecture",
                  fontsize=13, fontweight="bold", pad=8)
@@ -643,7 +643,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-    box_w, box_h = 1.3, 0.36
+    box_w, box_h = 1.3, 0.42
     y_q = 0.72
     y_m = 0.50
     y_c = 0.28
@@ -661,7 +661,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=8.5, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=11, fontweight="bold", zorder=4, color="#2D3436")
 
     def harrow(x1, y, x2):
         ax.annotate("", xy=(x2, y), xytext=(x1, y),
@@ -736,16 +736,17 @@ def plot_phnn_architecture(save_path: Path) -> None:
     # ── Quantum module bracket ─────────────────────────────────────────────
     vqc_cx, vqc_bw = q_blocks[2][0], q_blocks[2][4]
     z0_cx = q_blocks[3][0]
-    q_start = vqc_cx - vqc_bw / 2 - 0.05
+    # start bracket after the classical MLP box so arrowhead doesn't overlap it
+    q_start = c_blocks[-1][0] + box_w / 2 + 0.15
     q_end = z0_cx + box_w / 2 + 0.05
     bracket_y = y_q - box_h / 2 - 0.10
     ax.annotate(
         "", xy=(q_end, bracket_y), xytext=(q_start, bracket_y),
-        arrowprops={"arrowstyle": "<->", "color": COLORS["parallel"], "lw": 1.5},
+        arrowprops={"arrowstyle": "<->", "color": COLORS["shnn"], "lw": 1.5},
     )
-    ax.text((q_start + q_end) / 2, bracket_y - 0.07,
-            "Quantum module (PennyLane · lightning.qubit)",
-            ha="center", fontsize=8.5, color=COLORS["parallel"], style="italic")
+    ax.text((q_start + q_end) / 2, bracket_y - 0.02,
+            "Quantum module\n(PennyLane · lightning.qubit)",
+            ha="center", va="top", fontsize=10.5, color=COLORS["shnn"], style="italic")
 
     ax.set_title("PHNN — Parallel Hybrid Neural Network Architecture",
                  fontsize=13, fontweight="bold", pad=8)
