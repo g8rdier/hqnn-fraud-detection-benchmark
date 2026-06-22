@@ -316,7 +316,13 @@ def plot_aggregated_confusion_matrices(
 
 def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None:
     """2D scatter: MCC vs PR-AUC with std error bars — shows both primary metrics at once."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(9, 6.5))
+
+    # Custom offsets for models that are close together to avoid label overlap
+    label_offsets = {
+        "resnet": (12, -15),   # ResNet: right and down
+        "ftt": (8, 12),        # FT-T: right and up
+    }
 
     for r in results:
         color = COLORS.get(r.model_name, "#636E72")
@@ -327,8 +333,10 @@ def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None
             fmt="o", color=color, markersize=10,
             capsize=4, elinewidth=1.2, alpha=0.85,
         )
+        # Use custom offset for models with known overlap, default otherwise
+        offset = label_offsets.get(r.model_name, (8, 5))
         ax.annotate(label, (r.pr_auc_mean, r.mcc_mean),
-                    textcoords="offset points", xytext=(8, 5), fontsize=10)
+                    textcoords="offset points", xytext=offset, fontsize=10)
 
     ax.set_xlabel("PR-AUC (mean ± std)", fontsize=12)
     ax.set_ylabel("MCC (mean ± std)", fontsize=12)
