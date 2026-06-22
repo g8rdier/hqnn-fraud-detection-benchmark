@@ -167,6 +167,7 @@ def main() -> None:
 
     # ── 9. MCC vs PR-AUC scatter ──────────────────────────────────────────
     plot_mcc_vs_prauc(all_results, out / "mcc_vs_prauc.png")
+    plot_mcc_vs_prauc(all_results, out / "mcc_vs_prauc.svg")
 
     # ── 10. Efficiency frontier ───────────────────────────────────────────
     plot_efficiency_frontier(all_results, out / "efficiency_frontier.png")
