@@ -121,9 +121,11 @@ def main() -> None:
 
     # ── 4. SHNN architecture diagram ─────────────────────────────────────
     plot_shnn_architecture(out / "shnn_architecture.png")
+    plot_shnn_architecture(out / "shnn_architecture.svg")
 
     # ── 4b. PHNN architecture diagram ────────────────────────────────────
     plot_phnn_architecture(out / "phnn_architecture.svg")
+    plot_phnn_architecture(out / "phnn_architecture.png")
 
     # ── 5. PCA scree plot ─────────────────────────────────────────────────
     # Apply RobustScaler + MinMaxScaler first (matching the actual pipeline),
