@@ -321,7 +321,7 @@ def plot_mcc_vs_prauc(results: list[AggregatedMetrics], save_path: Path) -> None
     # Custom offsets for models that are close together to avoid label overlap
     label_offsets = {
         "resnet": (12, -15),   # ResNet: right and down
-        "ftt": (8, 12),        # FT-T: right and up
+        "ftt": (-18, 15),      # FT-T: directly over point (left and up)
     }
 
     for r in results:
