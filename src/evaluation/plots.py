@@ -595,19 +595,19 @@ def plot_shnn_architecture(save_path: Path) -> None:
     ax.axis("off")
 
     blocks = [
-        (0.4,  "Input\n(8 features)",     "#DFE6E9", "black"),
-        (2.0,  "Linear\n8→8",             "#DFE6E9", "black"),
-        (3.6,  "PiSigmoid\n×π",           "#DFE6E9", "black"),
-        (5.5,  "VQC\n8 qubits · 2 layers\n48 params", "#D8CCF5", COLORS["shnn"]),
-        (7.8,  "<Z0>\nMeasurement",         "#D8CCF5", COLORS["shnn"]),
-        (9.4,  "Linear\n1→1",             "#DFE6E9", "black"),
-        (11.0, "Sigmoid\n→ P(fraud)",      "#DFE6E9", "black"),
+        (0.4,  "Input\n(8 features)",                "#DFE6E9", "black",        12),
+        (2.0,  "Linear\n8→8",                        "#DFE6E9", "black",        12),
+        (3.6,  "PiSigmoid\n×π",                      "#DFE6E9", "black",        12),
+        (5.5,  "VQC\n8 qubits\n2 layers\n48 params", "#D8CCF5", COLORS["shnn"], 12),
+        (7.8,  "<Z0>\nMeasurement",                   "#D8CCF5", COLORS["shnn"], 12),
+        (9.4,  "Linear\n1→1",                        "#DFE6E9", "black",        12),
+        (11.0, "Sigmoid\n→ P(fraud)",                 "#DFE6E9", "black",        12),
     ]
 
     box_w, box_h = 1.35, 0.52
     cy = 0.55
 
-    for i, (cx, label, facecolor, edgecolor) in enumerate(blocks):
+    for i, (cx, label, facecolor, edgecolor, fs) in enumerate(blocks):
         fancy = plt.matplotlib.patches.FancyBboxPatch(
             (cx - box_w / 2, cy - box_h / 2), box_w, box_h,
             boxstyle="round,pad=0.04",
@@ -615,7 +615,7 @@ def plot_shnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=12, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=fs, fontweight="bold", zorder=4, color="#2D3436")
 
         if i < len(blocks) - 1:
             next_cx = blocks[i + 1][0]
@@ -636,7 +636,7 @@ def plot_shnn_architecture(save_path: Path) -> None:
     )
     ax.text((q_start + q_end) / 2, bracket_y - 0.02,
             "Quantum module\n(PennyLane · lightning.qubit)",
-            ha="center", va="top", fontsize=10.5, color=COLORS["shnn"], style="italic")
+            ha="center", va="top", fontsize=12, color=COLORS["shnn"], style="italic")
 
     ax.set_title("SHNN — Sequential Hybrid Neural Network Architecture",
                  fontsize=13, fontweight="bold", pad=8)
@@ -660,7 +660,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
     q_color = COLORS["shnn"]
     arrow_color = "#636E72"
 
-    def draw_box(cx, cy, label, facecolor, edgecolor, bw=None):
+    def draw_box(cx, cy, label, facecolor, edgecolor, bw=None, fontsize=14):
         bw = bw or box_w
         fancy = plt.matplotlib.patches.FancyBboxPatch(
             (cx - bw / 2, cy - box_h / 2), bw, box_h,
@@ -669,7 +669,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
         )
         ax.add_patch(fancy)
         ax.text(cx, cy, label, ha="center", va="center",
-                fontsize=14, fontweight="bold", zorder=4, color="#2D3436")
+                fontsize=fontsize, fontweight="bold", zorder=4, color="#2D3436")
 
     def harrow(x1, y, x2):
         ax.annotate("", xy=(x2, y), xytext=(x1, y),
@@ -693,14 +693,14 @@ def plot_phnn_architecture(save_path: Path) -> None:
 
     # ── Quantum branch ─────────────────────────────────────────────────────
     q_blocks = [
-        (2.55,  "Linear 8→8\n(vqc_proj)",             gray,   "black",  box_w),
-        (4.25,  "PiSigmoid\n×π",                       gray,   "black",  box_w),
-        (6.25,  "VQC\n8 qubits · 2 layers\n48 params", purple, q_color,  1.6),
-        (8.15,  "<Z0>\nMeasurement",                   purple, q_color,  box_w),
+        (2.55, "Linear 8→8\n(vqc_proj)",             gray,   "black",  box_w, 14),
+        (4.25, "PiSigmoid\n×π",                       gray,   "black",  box_w, 14),
+        (6.25, "VQC\n8 qubits\n2 layers\n48 params",  purple, q_color,  1.6,   14),
+        (8.15, "<Z0>\nMeasurement",                    purple, q_color,  box_w, 14),
     ]
     harrow(split_x, y_q, q_blocks[0][0] - q_blocks[0][4] / 2 - 0.03)
-    for i, (cx, label, fc, ec, bw) in enumerate(q_blocks):
-        draw_box(cx, y_q, label, fc, ec, bw)
+    for i, (cx, label, fc, ec, bw, fs) in enumerate(q_blocks):
+        draw_box(cx, y_q, label, fc, ec, bw, fontsize=fs)
         if i > 0:
             prev_cx, prev_bw = q_blocks[i - 1][0], q_blocks[i - 1][4]
             harrow(prev_cx + prev_bw / 2 + 0.03, y_q, cx - bw / 2 - 0.03)
@@ -754,7 +754,7 @@ def plot_phnn_architecture(save_path: Path) -> None:
     )
     ax.text((q_start + q_end) / 2, bracket_y - 0.02,
             "Quantum module\n(PennyLane · lightning.qubit)",
-            ha="center", va="top", fontsize=11.5, color=COLORS["shnn"], style="italic")
+            ha="center", va="top", fontsize=13, color=COLORS["shnn"], style="italic")
 
     ax.set_title("PHNN — Parallel Hybrid Neural Network Architecture",
                  fontsize=13, fontweight="bold", pad=8)
