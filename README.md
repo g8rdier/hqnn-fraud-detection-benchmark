@@ -255,6 +255,13 @@ The VQC provides 100% of the model's predictive signal. Without it, SHNN collaps
 
 ---
 
+## Cite this repository
+
+> Kobilarov, G. (2026). *HQNN Fraud Detection Benchmark* (v1.0.0) \[Software\]. GitHub.
+> https://github.com/g8rdier/hqnn-fraud-detection-benchmark/releases/tag/v1.0.0
+
+---
+
 ## Author
 
 [Gregor Kobilarov](https://github.com/g8rdier)
