@@ -839,7 +839,7 @@ def plot_smote_illustration(
         ax.set_title(title, fontsize=12, fontweight="bold")
         ax.set_xlabel("PC 1", fontsize=10)
         ax.set_ylabel("PC 2", fontsize=10)
-        ax.legend(fontsize=9)
+        ax.legend(fontsize=12)
 
     fig.suptitle("SMOTE: Synthetic Minority Oversampling in PCA Space (fold 0 train set)",
                  fontsize=12, fontweight="bold")
