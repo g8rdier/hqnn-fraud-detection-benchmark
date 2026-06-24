@@ -132,31 +132,46 @@ def main() -> None:
     # then show how much variance PCA captures at each component count.
     logger.info("Fitting PCA scree on preprocessed feature matrix...")
     from sklearn.preprocessing import RobustScaler, MinMaxScaler
-    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import StratifiedKFold, train_test_split
 
     X_np = X.values if hasattr(X, "values") else np.asarray(X)
 
-    skf = StratifiedKFold(n_splits=cfg.cv.n_folds, shuffle=True,
-                          random_state=cfg.seed)
-    splits = list(skf.split(X_np, y_np))
+    # Mirror cv.py exactly: 80/20 dev/test split first, then CV on dev set only
+    X_dev, _, y_dev, _ = train_test_split(
+        X_np, y_np,
+        test_size=cfg.data.test_size,
+        stratify=y_np,
+        random_state=cfg.data.random_state,
+    )
+    logger.info("Dev set: %d samples, %d fraud", len(y_dev), int(y_dev.sum()))
+
+    skf = StratifiedKFold(n_splits=cfg.cv.n_folds, shuffle=cfg.cv.shuffle,
+                          random_state=cfg.cv.random_state)
+    splits = list(skf.split(X_dev, y_dev))
     train_idx, _ = splits[0]
-    X_train_raw = X_np[train_idx]
-    y_train_raw = y_np[train_idx]
+    X_train_raw = X_dev[train_idx]
+    y_train_raw = y_dev[train_idx]
 
     X_scaled = RobustScaler().fit_transform(X_train_raw)
     X_scaled = MinMaxScaler().fit_transform(X_scaled)
     plot_pca_scree(X_scaled, n_highlight=cfg.shnn.vqc.n_qubits,
                    save_path=out / "pca_scree.png")
 
-    # ── 6. SMOTE illustration (fold 0 train set) ──────────────────────────
+    # ── 6. SMOTE illustration (fold 0 train set, dev-set pipeline) ────────
     # Before SMOTE: preprocessed (RobustScaler + MinMaxScaler + PCA) but no SMOTE
     # After SMOTE: same preprocessing + SMOTE applied
+    # Uses the fold 0 partition derived from the 80% dev set above,
+    # matching cv.py exactly (closes #156).
     logger.info("Building fold 0 for SMOTE illustration...")
     from src.data.preprocessing import FoldPreprocessor
 
     pre = FoldPreprocessor(config=cfg.preprocessing)
     X_pre_smote = pre.fit_transform(X_train_raw)   # 8D, no SMOTE
     y_pre_smote = y_train_raw
+    logger.info(
+        "Fold 0 train (pre-SMOTE): %d samples, %d fraud",
+        len(y_pre_smote), int(y_pre_smote.sum()),
+    )
 
     # Apply SMOTE to get the after state
     from imblearn.over_sampling import SMOTE
