@@ -184,6 +184,11 @@ def main() -> None:
         X_post_smote, y_post_smote,
         save_path=out / "smote_illustration.png",
     )
+    plot_smote_illustration(
+        X_pre_smote, y_pre_smote,
+        X_post_smote, y_post_smote,
+        save_path=out / "smote_illustration.svg",
+    )
 
     console.print(f"\n[bold green]All conceptual figures saved to {out}/[/]")
 
